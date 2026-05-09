@@ -6,7 +6,10 @@
 
     <form method="post" action="{{ route('login.store') }}" class="login-box">
         @csrf
-        <h1>Connexion</h1>
+        <header class="login-heading">
+            <h1>Connexion</h1>
+            <p>Aide à l'organisation des CCF en voie professionnelle</p>
+        </header>
 
         <div class="login-row login-row-muted">
             <label for="school_setting_id">Établissement</label>
