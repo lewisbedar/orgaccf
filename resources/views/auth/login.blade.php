@@ -8,7 +8,6 @@
         @csrf
         <header class="login-heading">
             <h1>Connexion</h1>
-            <p>Aide à l'organisation des CCF en voie professionnelle</p>
         </header>
 
         <div class="login-row login-row-muted">
@@ -45,6 +44,8 @@
 
         <button>Se connecter</button>
     </form>
+
+    <p class="login-tagline">Aide à l'organisation des CCF en voie professionnelle</p>
 
     <p class="login-copyright">© {{ date('Y') }} OrgaCCF</p>
 </main>
