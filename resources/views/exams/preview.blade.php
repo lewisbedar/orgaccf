@@ -34,7 +34,7 @@
                 @if($draft['type'] === 'oral')<th>Horaire</th>@endif
                 <th>Nom</th>
                 <th>Prénom</th>
-                <th>Tiers-temps</th>
+                @if($draft['type'] === 'ecrit')<th>Tiers-temps</th>@endif
             </tr>
             </thead>
             <tbody>
@@ -52,10 +52,10 @@
                     @endif
                     <td>{{ $slot['last_name'] }}</td>
                     <td>{{ $slot['first_name'] }}</td>
-                    <td>{{ $slot['extra_time'] ? 'Oui' : 'Non' }}</td>
+                    @if($draft['type'] === 'ecrit')<td>{{ $slot['extra_time'] ? 'Oui' : 'Non' }}</td>@endif
                 </tr>
             @empty
-                <tr><td colspan="5">Aucun élève ne correspond à cette classe et cette langue.</td></tr>
+                <tr><td colspan="{{ $draft['type'] === 'oral' ? 4 : 5 }}">Aucun élève ne correspond à cette classe et cette langue.</td></tr>
             @endforelse
             </tbody>
         </table>

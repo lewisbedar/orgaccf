@@ -49,7 +49,7 @@
 
     <fieldset class="planning-breaks">
         <legend>Pauses à respecter pour les oraux</legend>
-        <p class="muted">Ces pauses sont ignorées pour l’écrit. Elles permettent de bloquer la récréation et la pause midi avant de valider la liste de passage.</p>
+        <p class="muted">Ces pauses ne s’appliquent qu’aux oraux. Elles bloquent la récréation et la pause midi avant validation de la liste de passage.</p>
         @foreach($defaultBreaks as $index => $break)
             <div class="break-row">
                 <label>Libellé <input name="breaks[{{ $index }}][label]" value="{{ $break['label'] }}"></label>

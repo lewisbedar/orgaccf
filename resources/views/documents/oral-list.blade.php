@@ -16,7 +16,6 @@
         <tr>
             <th>NOM Prénom</th>
             <th>Heure de passage</th>
-            <th>Tiers-temps</th>
         </tr>
         </thead>
         <tbody>
@@ -24,7 +23,6 @@
             <tr>
                 <td>{{ $slot->student->last_name }} {{ $slot->student->first_name }}</td>
                 <td>{{ str_replace(':', 'h', substr($slot->pass_time, 0, 5)) }}</td>
-                <td>{{ $slot->student->extra_time ? 'Oui' : '' }}</td>
             </tr>
         @endforeach
         </tbody>
