@@ -1,12 +1,13 @@
 @extends('layouts.app', ['title' => 'Épreuve'])
+
 @section('content')
 <section class="page-heading">
-    <h1>{{ $exam->type === 'oral' ? 'Oral' : 'Écrit' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
+    <h1>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
     <a class="button" href="{{ route('grades.edit', $exam) }}">Saisir les notes</a>
 </section>
 
 <section class="panel meta-grid">
-    <div><span>Classe</span><strong>{{ $exam->schoolClass->name }}</strong></div>
+    <div><span>Classe</span><strong><span class="class-pill" style="--class-color: {{ $exam->schoolClass->displayColor() }}">{{ $exam->schoolClass->name }}</span></strong></div>
     <div><span>Langue</span><strong>{{ $exam->language->label() }}</strong></div>
     <div><span>Date</span><strong>{{ $exam->exam_date->format('d/m/Y') }} {{ substr($exam->start_time, 0, 5) }}</strong></div>
     <div><span>Salle</span><strong>{{ $exam->room }}</strong></div>

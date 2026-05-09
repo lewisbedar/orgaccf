@@ -96,6 +96,7 @@ class ClassController extends Controller
         $class = SchoolClass::create([
             'name' => $data['name'],
             'school_year_id' => $this->activeYear()->id,
+            'color' => $this->nextClassColor(),
             'language_ids' => array_map('intval', $data['language_ids']),
         ]);
 
@@ -124,6 +125,7 @@ class ClassController extends Controller
         $class = SchoolClass::create([
             'name' => $data['name'],
             'school_year_id' => $this->activeYear()->id,
+            'color' => $this->nextClassColor(),
             'language_ids' => array_map('intval', $data['language_ids']),
         ]);
 
@@ -143,5 +145,13 @@ class ClassController extends Controller
             'languages' => Language::where('is_active', true)->orderBy('sort_order')->get(),
             'year' => $this->activeYear(),
         ];
+    }
+
+    private function nextClassColor(): string
+    {
+        $palette = ['#1f6f78', '#8a5d00', '#7a3b69', '#2f6b3f', '#92413b', '#4f5f9f', '#b35f2d', '#317082'];
+        $count = SchoolClass::where('school_year_id', $this->activeYear()?->id)->count();
+
+        return $palette[$count % count($palette)];
     }
 }

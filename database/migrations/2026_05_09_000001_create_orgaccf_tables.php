@@ -42,6 +42,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('school_year_id')->constrained()->cascadeOnDelete();
             $table->string('name', 120);
+            $table->string('color', 7)->nullable();
             $table->json('language_ids')->nullable();
             $table->timestamps();
             $table->unique(['school_year_id', 'name']);

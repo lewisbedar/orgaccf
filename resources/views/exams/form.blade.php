@@ -1,4 +1,5 @@
 @extends('layouts.app', ['title' => 'Nouvelle épreuve'])
+
 @section('content')
 <section class="page-heading">
     <h1>Planifier une épreuve</h1>
@@ -7,9 +8,9 @@
 <form method="post" action="{{ route('exams.preview') }}" class="panel form-grid">
     @csrf
     <label>Type
-        <select name="type">
-            <option value="ecrit">Écrit · 1h</option>
-            <option value="oral">Oral · 10 min + 5 min pause</option>
+        <select name="type" data-exam-type>
+            <option value="ecrit">Épreuve écrite · 1h</option>
+            <option value="oral">Épreuve orale · 10 min + 5 min pause</option>
         </select>
     </label>
     <label>Classe
@@ -47,9 +48,9 @@
         <input name="supervisor_name">
     </label>
 
-    <fieldset class="planning-breaks">
+    <fieldset class="planning-breaks" data-oral-breaks hidden>
         <legend>Pauses à respecter pour les oraux</legend>
-        <p class="muted">Ces pauses ne s’appliquent qu’aux oraux. Elles bloquent la récréation et la pause midi avant validation de la liste de passage.</p>
+        <p class="muted">Ces pauses bloquent la récréation et la pause midi avant validation de la liste de passage.</p>
         @foreach($defaultBreaks as $index => $break)
             <div class="break-row">
                 <label>Libellé <input name="breaks[{{ $index }}][label]" value="{{ $break['label'] }}"></label>

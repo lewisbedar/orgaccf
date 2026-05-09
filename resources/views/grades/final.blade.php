@@ -63,7 +63,7 @@
     <tbody>
         @forelse($summaries as $summary)
             <tr>
-                <td>{{ $summary['student']->schoolClass->name }}</td>
+                <td><span class="class-pill" style="--class-color: {{ $summary['student']->schoolClass->displayColor() }}">{{ $summary['student']->schoolClass->name }}</span></td>
                 <td>{{ $summary['student']->last_name }} {{ $summary['student']->first_name }}</td>
                 <td>{{ $summary['language']->label() }}</td>
                 <td>{{ $summary['written']['label'] }}</td>

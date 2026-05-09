@@ -15,7 +15,7 @@
             @foreach($exams as $exam)
                 <option value="{{ $exam->id }}" @selected($selectedExam?->id === $exam->id)>
                     {{ $exam->exam_date->format('d/m/Y') }} {{ substr($exam->start_time, 0, 5) }} ·
-                    {{ $exam->type === 'oral' ? 'Oral' : 'Écrit' }}{{ $exam->is_catchup ? ' rattrapage' : '' }} ·
+                    {{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' rattrapage' : '' }} ·
                     {{ $exam->schoolClass->name }} · {{ $exam->language->label() }}
                 </option>
             @endforeach
@@ -32,8 +32,8 @@
 
 @if($selectedExam)
     <section class="panel meta-grid">
-        <div><span>Type</span><strong>{{ $selectedExam->type === 'oral' ? 'Oral' : 'Écrit' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
-        <div><span>Classe</span><strong>{{ $selectedExam->schoolClass->name }}</strong></div>
+        <div><span>Type</span><strong>{{ $selectedExam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
+        <div><span>Classe</span><strong><span class="class-pill" style="--class-color: {{ $selectedExam->schoolClass->displayColor() }}">{{ $selectedExam->schoolClass->name }}</span></strong></div>
         <div><span>Langue</span><strong>{{ $selectedExam->language->label() }}</strong></div>
         <div><span>Date</span><strong>{{ $selectedExam->exam_date->format('d/m/Y') }} {{ substr($selectedExam->start_time, 0, 5) }}</strong></div>
         <div><span>Barème</span><strong>/ {{ $maxScore }}</strong></div>

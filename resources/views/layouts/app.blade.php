@@ -14,16 +14,34 @@
     <a class="brand" href="{{ route('dashboard') }}"><img src="/images/logo.svg" alt=""> OrgaCCF</a>
     <nav>
         <a href="{{ route('dashboard') }}">Tableau de bord</a>
-        <a href="{{ route('classes.index') }}">Classes</a>
-        <a href="{{ route('students.index') }}">Élèves</a>
-        <a href="{{ route('exams.index') }}">Épreuves</a>
-        <a href="{{ route('grades.summary') }}">Notes</a>
-        <a href="{{ route('grades.final') }}">Bilan</a>
+        <span class="dropdown">
+            <button type="button" data-menu-button>Structure</button>
+            <span>
+                <a href="{{ route('classes.index') }}">Classes</a>
+                <a href="{{ route('students.index') }}">Élèves</a>
+            </span>
+        </span>
+        <span class="dropdown">
+            <button type="button" data-menu-button>Organisation</button>
+            <span>
+                <a href="{{ route('exams.index') }}">Épreuves</a>
+            </span>
+        </span>
+        <span class="dropdown">
+            <button type="button" data-menu-button>Résultats</button>
+            <span>
+                <a href="{{ route('grades.summary') }}">Notes</a>
+                <a href="{{ route('grades.final') }}">Bilan</a>
+            </span>
+        </span>
         @if(auth()->user()->isCoordinator())
-            <span class="dropdown"><button type="button" data-menu-button>Paramétrages</button><span>
-                <a href="{{ route('settings.school') }}">Établissement</a>
-                <a href="{{ route('users.index') }}">Utilisateurs</a>
-            </span></span>
+            <span class="dropdown">
+                <button type="button" data-menu-button>Paramétrages</button>
+                <span>
+                    <a href="{{ route('settings.school') }}">Établissement</a>
+                    <a href="{{ route('users.index') }}">Utilisateurs</a>
+                </span>
+            </span>
         @endif
     </nav>
     <form method="post" action="{{ route('logout') }}">@csrf<button class="ghost">Déconnexion</button></form>

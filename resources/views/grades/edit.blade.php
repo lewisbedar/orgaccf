@@ -5,7 +5,7 @@
     <div>
         <h1>Saisie des notes</h1>
         <p class="muted">
-            {{ $exam->type === 'oral' ? 'Oral' : 'Écrit' }} sur {{ $maxScore }} points ·
+            {{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }} sur {{ $maxScore }} points ·
             {{ $exam->schoolClass->name }} · {{ $exam->language->label() }}
         </p>
     </div>
@@ -16,7 +16,7 @@
 
     <p class="muted">
         Saisissez une note entre 0 et {{ $maxScore }}, ou AB pour une absence.
-        Une absence injustifiée restant après rattrapage rend le candidat éliminatoire.
+        Le motif d'absence apparaît uniquement pour les élèves marqués AB.
     </p>
 
     <table>
@@ -34,6 +34,7 @@
         <tbody>
             @foreach($exam->slots as $slot)
                 @php($grade = $exam->grades->firstWhere('student_id', $slot->student_id))
+                @php($currentValue = old("grades.$slot->student_id", $grade?->value))
                 <tr>
                     <td>{{ $slot->student->last_name }}</td>
                     <td>{{ $slot->student->first_name }}</td>
@@ -43,17 +44,21 @@
                     <td>
                         <input
                             class="grade-input"
+                            data-grade-input
+                            data-student-id="{{ $slot->student_id }}"
                             name="grades[{{ $slot->student_id }}]"
-                            value="{{ old("grades.$slot->student_id", $grade?->value) }}"
+                            value="{{ $currentValue }}"
                             placeholder="Ex. {{ $maxScore - 2 }} ou AB"
                         >
                     </td>
                     <td>
-                        <select name="absence_reasons[{{ $slot->student_id }}]">
-                            <option value="">-</option>
-                            <option value="justifiee" @selected(old("absence_reasons.$slot->student_id", $grade?->absence_reason) === 'justifiee')>Justifiée</option>
-                            <option value="injustifiee" @selected(old("absence_reasons.$slot->student_id", $grade?->absence_reason) === 'injustifiee')>Injustifiée</option>
-                        </select>
+                        <div class="absence-field" data-absence-field="{{ $slot->student_id }}" @if(strtoupper((string) $currentValue) !== 'AB') hidden @endif>
+                            <select name="absence_reasons[{{ $slot->student_id }}]">
+                                <option value="">Motif à préciser</option>
+                                <option value="justifiee" @selected(old("absence_reasons.$slot->student_id", $grade?->absence_reason) === 'justifiee')>Justifiée</option>
+                                <option value="injustifiee" @selected(old("absence_reasons.$slot->student_id", $grade?->absence_reason) === 'injustifiee')>Injustifiée</option>
+                            </select>
+                        </div>
                     </td>
                 </tr>
             @endforeach
