@@ -1,8 +1,8 @@
-﻿@extends('layouts.app', ['title' => 'Ã‰preuve'])
+@extends('layouts.app', ['title' => 'Épreuve'])
 
 @section('content')
 <section class="page-heading">
-    <h1>{{ $exam->type === 'oral' ? 'Ã‰preuve orale' : 'Ã‰preuve Ã©crite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
+    <h1>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
     <a class="button" href="{{ route('grades.edit', $exam) }}">Saisir les notes</a>
 </section>
 
@@ -16,7 +16,7 @@
 
 <nav class="doc-links">
     <a target="_blank" href="{{ route('documents.convocations', $exam) }}">Convocations</a>
-    <a target="_blank" href="{{ route('documents.attendance', $exam) }}">Ã‰margement</a>
+    <a target="_blank" href="{{ route('documents.attendance', $exam) }}">Émargement</a>
     @if($exam->type === 'oral')
         <a target="_blank" href="{{ route('documents.oral-list', $exam) }}">Liste de passage</a>
     @endif
@@ -27,7 +27,7 @@
     <tr>
         @if($exam->type === 'oral')<th>Horaire</th>@endif
         <th>Nom</th>
-        <th>PrÃ©nom</th>
+        <th>Prénom</th>
         @if($exam->type === 'ecrit')<th>Tiers-temps</th>@endif
         <th>Note</th>
     </tr>
@@ -47,13 +47,13 @@
 
 @unless($exam->is_catchup)
     <section class="panel narrow">
-        <h2>CrÃ©er un rattrapage</h2>
+        <h2>Créer un rattrapage</h2>
         <form method="post" action="{{ route('exams.catchup', $exam) }}" class="form-grid">
             @csrf
             <label>Date <input type="date" name="exam_date" required></label>
             <label>Heure <input type="time" name="start_time" required></label>
             <label>Salle <input name="room" value="{{ $exam->room }}" required></label>
-            <button>Proposer les Ã©lÃ¨ves AB</button>
+            <button>Proposer les élèves AB</button>
         </form>
     </section>
 @endunless
