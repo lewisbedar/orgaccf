@@ -81,10 +81,26 @@ class GradeController extends Controller
         return redirect()->route('exams.show', $exam)->with('success', 'Notes enregistrees.');
     }
 
-    public function summary(GradeSummaryService $summaryService)
+    public function summary(Request $request)
     {
+        $exams = Exam::with(['schoolClass', 'language', 'teacher'])
+            ->where('school_year_id', $this->activeYear()?->id)
+            ->whereIn('school_class_id', $this->visibleClassIds())
+            ->orderByDesc('exam_date')
+            ->orderByDesc('start_time')
+            ->get();
+
+        $selectedExam = null;
+        if ($request->filled('exam_id')) {
+            $selectedExam = $exams->firstWhere('id', (int) $request->integer('exam_id'));
+            abort_unless($selectedExam, 403);
+            $selectedExam->load(['schoolClass', 'language', 'slots.student', 'grades']);
+        }
+
         return view('grades.summary', [
-            'summaries' => $summaryService->forYear($this->activeYear(), $this->visibleClassIds()),
+            'exams' => $exams,
+            'selectedExam' => $selectedExam,
+            'maxScore' => $selectedExam ? GradeSummaryService::maxForType($selectedExam->type) : null,
         ]);
     }
 }

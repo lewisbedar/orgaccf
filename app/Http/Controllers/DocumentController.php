@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Exam;
 use App\Services\GradeSummaryService;
+use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
@@ -22,12 +23,21 @@ class DocumentController extends Controller
         return $this->document('documents.oral-list', $exam, 'Liste de passage oral');
     }
 
-    public function grades(GradeSummaryService $summaryService)
+    public function grades(Request $request)
     {
+        $exam = null;
+        if ($request->filled('exam_id')) {
+            $exam = Exam::with(['schoolClass.schoolYear', 'language', 'teacher', 'slots.student', 'grades'])
+                ->where('school_year_id', $this->activeYear()?->id)
+                ->whereIn('school_class_id', $this->visibleClassIds())
+                ->findOrFail($request->integer('exam_id'));
+        }
+
         return view('documents.grades', [
             'school' => $this->schoolSetting(),
             'year' => $this->activeYear(),
-            'summaries' => $summaryService->forYear($this->activeYear(), $this->visibleClassIds()),
+            'exam' => $exam,
+            'maxScore' => $exam ? GradeSummaryService::maxForType($exam->type) : null,
         ]);
     }
 
