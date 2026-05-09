@@ -1,8 +1,44 @@
 @extends('layouts.print', ['title' => 'Récapitulatif des notes'])
+
 @section('content')
 @include('partials.print-header')
+
 <h2>Récapitulatif des notes · {{ $year?->label }}</h2>
-<table><thead><tr><th>Classe</th><th>Nom</th><th>Prénom</th><th>Épreuve</th><th>Langue</th><th>Note</th><th>Tiers-temps</th></tr></thead><tbody>
-@foreach($grades as $grade)<tr><td>{{ $grade->student->schoolClass->name }}</td><td>{{ $grade->student->last_name }}</td><td>{{ $grade->student->first_name }}</td><td>{{ $grade->exam->type }} du {{ $grade->exam->exam_date->format('d/m/Y') }}</td><td>{{ $grade->exam->language->label() }}</td><td>{{ $grade->value }}</td><td>{{ $grade->student->extra_time ? 'Oui' : 'Non' }}</td></tr>@endforeach
-</tbody></table>
+
+<table>
+    <thead>
+        <tr>
+            <th>Classe</th>
+            <th>Élève</th>
+            <th>Langue</th>
+            <th>Écrit / 12</th>
+            <th>Oral / 8</th>
+            <th>Total / 20</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($summaries as $summary)
+            <tr>
+                <td>{{ $summary['student']->schoolClass->name }}</td>
+                <td>{{ $summary['student']->last_name }} {{ $summary['student']->first_name }}</td>
+                <td>{{ $summary['language']->label() }}</td>
+                <td>{{ $summary['written']['label'] }}</td>
+                <td>{{ $summary['oral']['label'] }}</td>
+                <td>{{ $summary['total'] !== null ? app(\App\Services\GradeSummaryService::class)->formatScore($summary['total']) : '-' }}</td>
+                <td>
+                    @if($summary['status'] === 'eliminatoire')
+                        Éliminatoire
+                    @elseif($summary['status'] === 'complet')
+                        Complet
+                    @else
+                        Incomplet
+                    @endif
+                </td>
+            </tr>
+        @empty
+            <tr><td colspan="7">Aucun élève à afficher.</td></tr>
+        @endforelse
+    </tbody>
+</table>
 @endsection

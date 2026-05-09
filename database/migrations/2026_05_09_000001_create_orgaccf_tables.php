@@ -104,6 +104,7 @@ return new class extends Migration {
             $table->foreignId('exam_id')->constrained()->cascadeOnDelete();
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->string('value', 10)->nullable();
+            $table->enum('absence_reason', ['justifiee', 'injustifiee'])->nullable();
             $table->decimal('numeric_value', 5, 2)->nullable();
             $table->foreignId('catchup_exam_id')->nullable()->constrained('exams')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
