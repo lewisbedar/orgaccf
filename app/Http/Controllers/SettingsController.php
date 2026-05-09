@@ -38,6 +38,7 @@ class SettingsController extends Controller
             'address' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:80'],
             'email' => ['nullable', 'email'],
+            'academic_zone' => ['required', 'in:A,B,C'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg'],
         ]);
         if ($request->hasFile('logo')) {

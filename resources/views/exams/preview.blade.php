@@ -26,6 +26,17 @@
         </section>
     @endif
 
+    @if(count($warnings))
+        <section class="planning-warnings">
+            @foreach($warnings as $warning)
+                <article>
+                    <strong>{{ $warning['title'] }}</strong>
+                    <span>{{ $warning['message'] }}</span>
+                </article>
+            @endforeach
+        </section>
+    @endif
+
     <div class="table-scroll">
         <table class="import-table">
             <thead>

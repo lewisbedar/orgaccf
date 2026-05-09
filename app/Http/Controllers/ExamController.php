@@ -9,6 +9,7 @@ use App\Models\Language;
 use App\Models\SchoolClass;
 use App\Models\User;
 use App\Services\OralScheduleBuilder;
+use App\Services\PlanningWarningService;
 use Illuminate\Http\Request;
 
 class ExamController extends Controller
@@ -36,7 +37,7 @@ class ExamController extends Controller
         ]);
     }
 
-    public function preview(Request $request, OralScheduleBuilder $scheduleBuilder)
+    public function preview(Request $request, OralScheduleBuilder $scheduleBuilder, PlanningWarningService $warningService)
     {
         $this->coordinator();
         $data = $this->validatedExam($request);
@@ -61,7 +62,11 @@ class ExamController extends Controller
                 'pass_time' => null,
             ])->all();
 
-        $draft = $data + ['breaks' => $breaks, 'slots' => $slots];
+        $draft = $data + [
+            'school_year_id' => $this->activeYear()->id,
+            'breaks' => $breaks,
+            'slots' => $slots,
+        ];
         $request->session()->put('exam_planning_draft', $draft);
 
         return view('exams.preview', [
@@ -70,6 +75,7 @@ class ExamController extends Controller
             'language' => $language,
             'teacher' => $teacher,
             'slots' => $slots,
+            'warnings' => $warningService->warnings($draft, $slots, $this->schoolSetting()),
         ]);
     }
 
