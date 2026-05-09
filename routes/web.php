@@ -32,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/classes/confirm', [ClassController::class, 'confirm'])->name('classes.confirm');
     Route::resource('classes', ClassController::class)->parameters(['classes' => 'class'])->except(['edit', 'update', 'destroy']);
     Route::resource('students', StudentController::class)->except(['show']);
+    Route::post('/exams/preview', [ExamController::class, 'preview'])->name('exams.preview');
+    Route::post('/exams/confirm', [ExamController::class, 'confirm'])->name('exams.confirm');
     Route::resource('exams', ExamController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/exams/{exam}/catchup', [ExamController::class, 'catchup'])->name('exams.catchup');
 
