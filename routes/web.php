@@ -28,6 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/year/open', [SettingsController::class, 'newYear'])->name('settings.year.open');
 
     Route::resource('users', UserController::class)->except(['show']);
+    Route::post('/classes/preview', [ClassController::class, 'preview'])->name('classes.preview');
+    Route::post('/classes/confirm', [ClassController::class, 'confirm'])->name('classes.confirm');
     Route::resource('classes', ClassController::class)->parameters(['classes' => 'class'])->except(['edit', 'update', 'destroy']);
     Route::resource('students', StudentController::class)->except(['show']);
     Route::resource('exams', ExamController::class)->except(['edit', 'update', 'destroy']);
