@@ -11,8 +11,8 @@
 </head>
 <body>
 <header class="topbar">
-    <a class="brand brand-logo" href="{{ route('dashboard') }}">
-        <img src="/images/orgaccf-horizontal.png" alt="OrgaCCF">
+    <a class="brand" href="{{ route('dashboard') }}">
+        <img src="/images/orgaccf-square.png" alt="OrgaCCF">
     </a>
     <nav>
         <a href="{{ route('dashboard') }}">Tableau de bord</a>
