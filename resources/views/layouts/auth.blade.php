@@ -7,5 +7,5 @@
     <link rel="icon" href="/images/orgaccf-square.png" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="auth-page"><main class="auth-card">@yield('content')</main></body>
+<body class="auth-page">@yield('content')</body>
 </html>

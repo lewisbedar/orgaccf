@@ -16,11 +16,27 @@ abstract class Controller
 
     protected function activeYear(): ?SchoolYear
     {
+        if (session()->has('school_year_id')) {
+            $selectedYear = SchoolYear::find(session('school_year_id'));
+
+            if ($selectedYear) {
+                return $selectedYear;
+            }
+        }
+
         return SchoolYear::active();
     }
 
     protected function schoolSetting(): SchoolSetting
     {
+        if (session()->has('school_setting_id')) {
+            $selectedSchool = SchoolSetting::find(session('school_setting_id'));
+
+            if ($selectedSchool) {
+                return $selectedSchool;
+            }
+        }
+
         return SchoolSetting::current();
     }
 
