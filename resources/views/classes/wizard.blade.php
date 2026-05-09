@@ -1,4 +1,5 @@
 @extends('layouts.app', ['title' => 'Assistant classe'])
+
 @section('content')
 <section class="page-heading">
     <h1>Assistant de création de classe</h1>
@@ -19,15 +20,16 @@
 
     <p>Année scolaire : <strong>{{ $year?->label ?? 'à configurer' }}</strong></p>
 
-    <fieldset>
+    <fieldset class="language-picker">
         <legend>Langue(s) concernée(s)</legend>
-        @foreach($languages as $language)
-            <label class="check">
-                <input type="checkbox" name="language_ids[]" value="{{ $language->id }}" @checked(in_array($language->id, old('language_ids', [])))>
-                <img class="flag" src="{{ $language->icon_path }}" alt="">
-                {{ $language->label() }}
-            </label>
-        @endforeach
+        <div class="language-grid">
+            @foreach($languages as $language)
+                <label class="language-choice">
+                    <input type="checkbox" name="language_ids[]" value="{{ $language->id }}" @checked(in_array($language->id, old('language_ids', [])))>
+                    <span><img class="flag" src="{{ $language->icon_path }}" alt=""> {{ $language->label() }}</span>
+                </label>
+            @endforeach
+        </div>
     </fieldset>
 
     <label>Import Pronote CSV facultatif

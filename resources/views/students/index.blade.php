@@ -1,19 +1,19 @@
-@extends('layouts.app', ['title' => 'Élèves'])
+﻿@extends('layouts.app', ['title' => 'Ã‰lÃ¨ves'])
 
 @section('content')
 <section class="page-heading">
-    <h1>Élèves</h1>
+    <h1>Ã‰lÃ¨ves</h1>
     <a class="button" href="{{ route('students.create') }}">Ajouter</a>
 </section>
 
 <table>
     <thead>
-        <tr><th>Classe</th><th>Nom</th><th>Prénom</th><th>Langues</th><th>Tiers-temps</th><th></th></tr>
+        <tr><th>Classe</th><th>Nom</th><th>PrÃ©nom</th><th>Langues</th><th>Tiers-temps</th><th></th></tr>
     </thead>
     <tbody>
         @foreach($students as $student)
             <tr>
-                <td><span class="class-pill" style="--class-color: {{ $student->schoolClass->displayColor() }}">{{ $student->schoolClass->name }}</span></td>
+                <td><span class="class-chip" style="--class-color: {{ $student->schoolClass->displayColor() }}">{{ $student->schoolClass->name }}</span></td>
                 <td>{{ $student->last_name }}</td>
                 <td>{{ $student->first_name }}</td>
                 <td>{{ $student->languages->map->label()->implode(', ') }}</td>

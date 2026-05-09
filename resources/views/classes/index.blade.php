@@ -9,7 +9,6 @@
 <div class="list-grid">
     @foreach($classes as $class)
         <article class="card class-card" style="--class-color: {{ $class->displayColor() }}">
-            <span class="class-color-dot"></span>
             <h2><a href="{{ route('classes.show', $class) }}">{{ $class->name }}</a></h2>
             <p>{{ $class->students_count }} élève(s)</p>
         </article>

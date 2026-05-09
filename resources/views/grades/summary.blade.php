@@ -1,22 +1,22 @@
-@extends('layouts.app', ['title' => 'Notes'])
+﻿@extends('layouts.app', ['title' => 'Notes'])
 
 @section('content')
 <section class="page-heading">
     <div>
         <h1>Notes</h1>
-        <p class="muted">Sélectionnez une épreuve pour saisir ou consulter les notes des élèves concernés.</p>
+        <p class="muted">SÃ©lectionnez une Ã©preuve pour saisir ou consulter les notes des Ã©lÃ¨ves concernÃ©s.</p>
     </div>
 </section>
 
 <form method="get" action="{{ route('grades.summary') }}" class="panel form-grid">
-    <label>Épreuve
+    <label>Ã‰preuve
         <select name="exam_id" required>
-            <option value="">Choisir une épreuve</option>
+            <option value="">Choisir une Ã©preuve</option>
             @foreach($exams as $exam)
                 <option value="{{ $exam->id }}" @selected($selectedExam?->id === $exam->id)>
-                    {{ $exam->exam_date->format('d/m/Y') }} {{ substr($exam->start_time, 0, 5) }} ·
-                    {{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' rattrapage' : '' }} ·
-                    {{ $exam->schoolClass->name }} · {{ $exam->language->label() }}
+                    {{ $exam->exam_date->format('d/m/Y') }} {{ substr($exam->start_time, 0, 5) }} Â·
+                    {{ $exam->type === 'oral' ? 'Ã‰preuve orale' : 'Ã‰preuve Ã©crite' }}{{ $exam->is_catchup ? ' rattrapage' : '' }} Â·
+                    {{ $exam->schoolClass->name }} Â· {{ $exam->language->label() }}
                 </option>
             @endforeach
         </select>
@@ -32,11 +32,11 @@
 
 @if($selectedExam)
     <section class="panel meta-grid">
-        <div><span>Type</span><strong>{{ $selectedExam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
-        <div><span>Classe</span><strong><span class="class-pill" style="--class-color: {{ $selectedExam->schoolClass->displayColor() }}">{{ $selectedExam->schoolClass->name }}</span></strong></div>
+        <div><span>Type</span><strong>{{ $selectedExam->type === 'oral' ? 'Ã‰preuve orale' : 'Ã‰preuve Ã©crite' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
+        <div><span>Classe</span><strong><span class="class-chip" style="--class-color: {{ $selectedExam->schoolClass->displayColor() }}">{{ $selectedExam->schoolClass->name }}</span></strong></div>
         <div><span>Langue</span><strong>{{ $selectedExam->language->label() }}</strong></div>
         <div><span>Date</span><strong>{{ $selectedExam->exam_date->format('d/m/Y') }} {{ substr($selectedExam->start_time, 0, 5) }}</strong></div>
-        <div><span>Barème</span><strong>/ {{ $maxScore }}</strong></div>
+        <div><span>BarÃ¨me</span><strong>/ {{ $maxScore }}</strong></div>
     </section>
 
     <table>
@@ -44,7 +44,7 @@
             <tr>
                 @if($selectedExam->type === 'oral')<th>Horaire</th>@endif
                 <th>Nom</th>
-                <th>Prénom</th>
+                <th>PrÃ©nom</th>
                 @if($selectedExam->type === 'ecrit')<th>Tiers-temps</th>@endif
                 <th>Note / {{ $maxScore }}</th>
                 <th>Absence</th>
@@ -61,7 +61,7 @@
                     <td>{{ $grade?->value ?: '-' }}</td>
                     <td>
                         @if($grade?->value === 'AB')
-                            {{ $grade->absence_reason === 'injustifiee' ? 'Injustifiée' : ($grade->absence_reason === 'justifiee' ? 'Justifiée' : '-') }}
+                            {{ $grade->absence_reason === 'injustifiee' ? 'InjustifiÃ©e' : ($grade->absence_reason === 'justifiee' ? 'JustifiÃ©e' : '-') }}
                         @else
                             -
                         @endif
@@ -72,7 +72,7 @@
     </table>
 @else
     <section class="empty-state">
-        Choisissez une épreuve pour afficher les élèves et accéder à la saisie.
+        Choisissez une Ã©preuve pour afficher les Ã©lÃ¨ves et accÃ©der Ã  la saisie.
     </section>
 @endif
 @endsection

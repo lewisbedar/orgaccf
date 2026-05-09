@@ -1,43 +1,43 @@
-@extends('layouts.app', ['title' => 'Tableau de bord'])
+﻿@extends('layouts.app', ['title' => 'Tableau de bord'])
 
 @section('content')
 <section class="page-heading">
     <h1>Tableau de bord</h1>
-    <a class="button" href="{{ route('exams.create') }}">Nouvelle épreuve</a>
+    <a class="button" href="{{ route('exams.create') }}">Nouvelle Ã©preuve</a>
 </section>
 
 <section class="stat-grid">
-@foreach(['classes' => 'Classes', 'students' => 'Élèves', 'planned' => 'Épreuves prévues', 'finished' => 'Épreuves terminées', 'absents' => 'Absents à rattraper'] as $key => $label)
+@foreach(['classes' => 'Classes', 'students' => 'Ã‰lÃ¨ves', 'planned' => 'Ã‰preuves prÃ©vues', 'finished' => 'Ã‰preuves terminÃ©es', 'absents' => 'Absents Ã  rattraper'] as $key => $label)
     <article><strong>{{ $stats[$key] }}</strong><span>{{ $label }}</span></article>
 @endforeach
 </section>
 
 <section class="panel">
     <div class="section-title">
-        <h2>Prochaines épreuves</h2>
-        <a href="{{ route('exams.index') }}">Voir toutes les épreuves</a>
+        <h2>Prochaines Ã©preuves</h2>
+        <a href="{{ route('exams.index') }}">Voir toutes les Ã©preuves</a>
     </div>
 
     <div class="agenda agenda-rich">
         @forelse($upcoming->groupBy(fn ($exam) => $exam->exam_date->format('Y-m-d')) as $date => $exams)
             <section class="agenda-day">
-                <h3>{{ \Carbon\Carbon::parse($date)->translatedFormat('l d/m/Y') }}</h3>
+                <h3>{{ \Illuminate\Support\Str::ucfirst(\Carbon\Carbon::parse($date)->locale('fr')->isoFormat('dddd D MMMM YYYY')) }}</h3>
                 @foreach($exams as $exam)
                     <article style="--class-color: {{ $exam->schoolClass->displayColor() }}">
                         <time>{{ substr($exam->start_time, 0, 5) }}</time>
                         <div class="agenda-main">
-                            <strong>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</strong>
-                            <span><span class="class-pill" style="--class-color: {{ $exam->schoolClass->displayColor() }}">{{ $exam->schoolClass->name }}</span> {{ $exam->language->label() }}</span>
+                            <strong>{{ $exam->type === 'oral' ? 'Ã‰preuve orale' : 'Ã‰preuve Ã©crite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</strong>
+                            <span><span class="class-chip" style="--class-color: {{ $exam->schoolClass->displayColor() }}">{{ $exam->schoolClass->name }}</span> {{ $exam->language->label() }}</span>
                         </div>
                         <div class="agenda-meta">
                             <span>Salle {{ $exam->room }}</span>
-                            <span>{{ $exam->type === 'oral' ? 'Jury' : 'Surveillant' }} : {{ $exam->teacher?->display_name ?: $exam->supervisor_name ?: 'Non renseigné' }}</span>
+                            <span>{{ $exam->type === 'oral' ? 'Jury' : 'Surveillant' }} : {{ $exam->teacher?->display_name ?: $exam->supervisor_name ?: 'Non renseignÃ©' }}</span>
                         </div>
                     </article>
                 @endforeach
             </section>
         @empty
-            <p class="muted">Aucune épreuve à venir.</p>
+            <p class="muted">Aucune Ã©preuve Ã  venir.</p>
         @endforelse
     </div>
 </section>

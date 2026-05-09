@@ -1,8 +1,8 @@
-@extends('layouts.app', ['title' => 'Épreuves'])
+﻿@extends('layouts.app', ['title' => 'Ã‰preuves'])
 
 @section('content')
 <section class="page-heading">
-    <h1>Épreuves</h1>
+    <h1>Ã‰preuves</h1>
     <a class="button" href="{{ route('exams.create') }}">Planifier</a>
 </section>
 
@@ -22,8 +22,8 @@
         @foreach($exams as $exam)
             <tr>
                 <td>{{ $exam->exam_date->format('d/m/Y') }} {{ substr($exam->start_time, 0, 5) }}</td>
-                <td>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' · rattrapage' : '' }}</td>
-                <td><span class="class-pill" style="--class-color: {{ $exam->schoolClass->displayColor() }}">{{ $exam->schoolClass->name }}</span></td>
+                <td>{{ $exam->type === 'oral' ? 'Ã‰preuve orale' : 'Ã‰preuve Ã©crite' }}{{ $exam->is_catchup ? ' Â· rattrapage' : '' }}</td>
+                <td><span class="class-chip" style="--class-color: {{ $exam->schoolClass->displayColor() }}">{{ $exam->schoolClass->name }}</span></td>
                 <td>{{ $exam->language->label() }}</td>
                 <td>{{ $exam->room }}</td>
                 <td>{{ $exam->teacher?->display_name ?: $exam->supervisor_name }}</td>
