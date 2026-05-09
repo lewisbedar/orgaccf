@@ -42,5 +42,7 @@
 
         <button>Se connecter</button>
     </form>
+
+    <p class="login-copyright">© {{ date('Y') }} OrgaCCF</p>
 </main>
 @endsection
