@@ -18,6 +18,7 @@
         <a href="{{ route('students.index') }}">Élèves</a>
         <a href="{{ route('exams.index') }}">Épreuves</a>
         <a href="{{ route('grades.summary') }}">Notes</a>
+        <a href="{{ route('grades.final') }}">Bilan</a>
         @if(auth()->user()->isCoordinator())
             <span class="dropdown"><button type="button" data-menu-button>Paramétrages</button><span>
                 <a href="{{ route('settings.school') }}">Établissement</a>

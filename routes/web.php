@@ -40,9 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/grades/exam/{exam}', [GradeController::class, 'edit'])->name('grades.edit');
     Route::post('/grades/exam/{exam}', [GradeController::class, 'update'])->name('grades.update');
     Route::get('/grades/summary', [GradeController::class, 'summary'])->name('grades.summary');
+    Route::get('/grades/final', [GradeController::class, 'final'])->name('grades.final');
 
     Route::get('/documents/exam/{exam}/convocations', [DocumentController::class, 'convocations'])->name('documents.convocations');
     Route::get('/documents/exam/{exam}/attendance', [DocumentController::class, 'attendance'])->name('documents.attendance');
     Route::get('/documents/exam/{exam}/oral-list', [DocumentController::class, 'oralList'])->name('documents.oral-list');
     Route::get('/documents/grades', [DocumentController::class, 'grades'])->name('documents.grades');
+    Route::get('/documents/final-grades', [DocumentController::class, 'finalGrades'])->name('documents.final-grades');
 });

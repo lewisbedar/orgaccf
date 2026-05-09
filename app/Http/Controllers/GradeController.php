@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Exam;
 use App\Models\Grade;
+use App\Models\Language;
+use App\Models\SchoolClass;
 use App\Services\GradeSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,6 +103,36 @@ class GradeController extends Controller
             'exams' => $exams,
             'selectedExam' => $selectedExam,
             'maxScore' => $selectedExam ? GradeSummaryService::maxForType($selectedExam->type) : null,
+        ]);
+    }
+
+    public function final(Request $request, GradeSummaryService $summaryService)
+    {
+        $classIds = $this->visibleClassIds();
+        $summaries = $summaryService->forYear($this->activeYear(), $classIds);
+
+        if ($request->filled('class_id')) {
+            $classId = (int) $request->integer('class_id');
+            abort_unless(in_array($classId, $classIds, true), 403);
+            $summaries = $summaries->filter(fn ($summary) => $summary['student']->school_class_id === $classId);
+        }
+
+        if ($request->filled('language_id')) {
+            $languageId = (int) $request->integer('language_id');
+            $summaries = $summaries->filter(fn ($summary) => $summary['language']->id === $languageId);
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->string('status')->toString();
+            abort_unless(in_array($status, ['complet', 'incomplet', 'eliminatoire'], true), 422);
+            $summaries = $summaries->filter(fn ($summary) => $summary['status'] === $status);
+        }
+
+        return view('grades.final', [
+            'summaries' => $summaries->values(),
+            'classes' => SchoolClass::whereIn('id', $classIds)->orderBy('name')->get(),
+            'languages' => Language::where('is_active', true)->orderBy('sort_order')->get(),
+            'filters' => $request->only(['class_id', 'language_id', 'status']),
         ]);
     }
 }

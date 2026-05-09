@@ -41,6 +41,35 @@ class DocumentController extends Controller
         ]);
     }
 
+    public function finalGrades(Request $request, GradeSummaryService $summaryService)
+    {
+        $classIds = $this->visibleClassIds();
+        $summaries = $summaryService->forYear($this->activeYear(), $classIds);
+
+        if ($request->filled('class_id')) {
+            $classId = (int) $request->integer('class_id');
+            abort_unless(in_array($classId, $classIds, true), 403);
+            $summaries = $summaries->filter(fn ($summary) => $summary['student']->school_class_id === $classId);
+        }
+
+        if ($request->filled('language_id')) {
+            $languageId = (int) $request->integer('language_id');
+            $summaries = $summaries->filter(fn ($summary) => $summary['language']->id === $languageId);
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->string('status')->toString();
+            abort_unless(in_array($status, ['complet', 'incomplet', 'eliminatoire'], true), 422);
+            $summaries = $summaries->filter(fn ($summary) => $summary['status'] === $status);
+        }
+
+        return view('documents.final-grades', [
+            'school' => $this->schoolSetting(),
+            'year' => $this->activeYear(),
+            'summaries' => $summaries->values(),
+        ]);
+    }
+
     private function document(string $view, Exam $exam, string $title)
     {
         abort_unless(in_array($exam->school_class_id, $this->visibleClassIds(), true), 403);
