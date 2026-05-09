@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 @section('content')
-<img src="/images/logo.svg" class="login-logo" alt="OrgaCCF">
+<img src="/images/orgaccf-square.png" class="login-logo" alt="OrgaCCF">
 <h1>Connexion</h1>
 <form method="post" action="{{ route('login.store') }}" class="stack">@csrf
     <label>Identifiant <input name="username" value="{{ old('username') }}" required autofocus></label>

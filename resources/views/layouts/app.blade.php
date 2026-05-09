@@ -6,12 +6,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OrgaCCF - {{ $title ?? 'Application' }}</title>
-    <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/images/orgaccf-square.png" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="{{ route('dashboard') }}"><img src="/images/logo.svg" alt=""> OrgaCCF</a>
+    <a class="brand brand-logo" href="{{ route('dashboard') }}">
+        <img src="/images/orgaccf-horizontal.png" alt="OrgaCCF">
+    </a>
     <nav>
         <a href="{{ route('dashboard') }}">Tableau de bord</a>
         <span class="dropdown">
