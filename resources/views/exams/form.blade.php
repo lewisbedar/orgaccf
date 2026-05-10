@@ -2,18 +2,21 @@
 
 @section('content')
 <section class="page-heading">
-    <h1>Planifier une épreuve</h1>
+    <div>
+        <h1>Planifier une épreuve</h1>
+        <p class="muted">Renseignez les informations principales. Vous pourrez vérifier la liste des élèves avant validation.</p>
+    </div>
 </section>
 
 <form method="post" action="{{ route('exams.preview') }}" class="panel form-grid">
     @csrf
-    <label>Type
+    <label>Type d’épreuve
         <select name="type" data-exam-type>
-            <option value="ecrit">Épreuve écrite · 1h</option>
-            <option value="oral">Épreuve orale · 10 min + 5 min pause</option>
+            <option value="ecrit">Épreuve écrite · 1h pour toute la classe</option>
+            <option value="oral">Épreuve orale · horaires individuels</option>
         </select>
     </label>
-    <label>Classe
+    <label>Classe concernée
         <select name="school_class_id">
             @foreach($classes as $class)
                 <option value="{{ $class->id }}">{{ $class->name }}</option>
@@ -45,8 +48,13 @@
         </select>
     </label>
     <label>Surveillant écrit
-        <input name="supervisor_name">
+        <input name="supervisor_name" placeholder="À remplir uniquement pour l’écrit si besoin">
     </label>
+
+    <aside class="form-help">
+        <strong>Repères utiles</strong>
+        <p>L’écrit utilise le même horaire pour tous les élèves. L’oral génère automatiquement les passages individuels avec les pauses.</p>
+    </aside>
 
     <fieldset class="planning-breaks" data-oral-breaks hidden>
         <legend>Pauses à respecter pour les oraux</legend>
