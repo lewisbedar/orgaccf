@@ -24,7 +24,7 @@
         <h1>Bilan des notes</h1>
         <p class="muted">Vue finale par élève et par langue : écrit /12, oral /8, total /20 et statut.</p>
     </div>
-    <a class="button" target="_blank" href="{{ route('documents.final-grades', request()->query()) }}">Version imprimable</a>
+    <a class="button" target="_blank" href="{{ route('documents.final-grades', request()->query()) }}">Bilan PDF</a>
 </section>
 
 <form method="get" action="{{ route('grades.final') }}" class="panel form-grid">

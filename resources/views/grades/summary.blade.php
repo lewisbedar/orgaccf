@@ -25,7 +25,7 @@
         <button>Afficher</button>
         @if($selectedExam)
             <a class="button" href="{{ route('grades.edit', $selectedExam) }}">Saisir les notes</a>
-            <a class="button" target="_blank" href="{{ route('documents.grades', ['exam_id' => $selectedExam->id]) }}">Version imprimable</a>
+            <a class="button" target="_blank" href="{{ route('documents.grades', ['exam_id' => $selectedExam->id]) }}">Récapitulatif PDF</a>
         @endif
     </div>
 </form>

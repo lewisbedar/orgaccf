@@ -15,10 +15,10 @@
 </section>
 
 <nav class="doc-links">
-    <a target="_blank" href="{{ route('documents.convocations', $exam) }}">Convocations</a>
-    <a target="_blank" href="{{ route('documents.attendance', $exam) }}">Émargement</a>
+    <a target="_blank" href="{{ route('documents.convocations', $exam) }}">Convocations PDF</a>
+    <a target="_blank" href="{{ route('documents.attendance', $exam) }}">Émargement PDF</a>
     @if($exam->type === 'oral')
-        <a target="_blank" href="{{ route('documents.oral-list', $exam) }}">Liste de passage</a>
+        <a target="_blank" href="{{ route('documents.oral-list', $exam) }}">Liste de passage PDF</a>
     @endif
 </nav>
 

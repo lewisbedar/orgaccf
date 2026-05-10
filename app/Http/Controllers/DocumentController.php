@@ -63,12 +63,12 @@ class DocumentController extends Controller
 
     public function attendance(Exam $exam)
     {
-        return $this->document('documents.attendance', $exam, 'Feuille d\'emargement');
+        return $this->examPdf('documents.attendance', $exam, 'feuille-emargement');
     }
 
     public function oralList(Exam $exam)
     {
-        return $this->document('documents.oral-list', $exam, 'Liste de passage oral');
+        return $this->examPdf('documents.oral-list', $exam, 'liste-passage-oral');
     }
 
     public function grades(Request $request)
@@ -81,12 +81,18 @@ class DocumentController extends Controller
                 ->findOrFail($request->integer('exam_id'));
         }
 
-        return view('documents.grades', [
+        $viewData = [
             'school' => $this->schoolSetting(),
             'year' => $this->activeYear(),
             'exam' => $exam,
             'maxScore' => $exam ? GradeSummaryService::maxForType($exam->type) : null,
-        ]);
+        ];
+
+        $filename = $exam
+            ? sprintf('recapitulatif-notes-%s-%s.pdf', str($exam->schoolClass->name)->slug(), str($exam->language->label())->slug())
+            : 'recapitulatif-notes.pdf';
+
+        return Pdf::loadView('documents.grades', $viewData)->setPaper('a4')->stream($filename);
     }
 
     public function finalGrades(Request $request, GradeSummaryService $summaryService)
@@ -111,11 +117,11 @@ class DocumentController extends Controller
             $summaries = $summaries->filter(fn ($summary) => $summary['status'] === $status);
         }
 
-        return view('documents.final-grades', [
+        return Pdf::loadView('documents.final-grades', [
             'school' => $this->schoolSetting(),
             'year' => $this->activeYear(),
             'summaries' => $summaries->values(),
-        ]);
+        ])->setPaper('a4', 'landscape')->stream('bilan-notes.pdf');
     }
 
     private function document(string $view, Exam $exam, string $title)
@@ -127,5 +133,25 @@ class DocumentController extends Controller
             'school' => $this->schoolSetting(),
             'exam' => $exam->load(['schoolClass.schoolYear', 'language', 'teacher', 'slots.student']),
         ]);
+    }
+
+    private function examPdf(string $view, Exam $exam, string $prefix)
+    {
+        abort_unless(in_array($exam->school_class_id, $this->visibleClassIds(), true), 403);
+
+        $exam->load(['schoolClass.schoolYear', 'language', 'teacher', 'slots.student']);
+
+        $filename = sprintf(
+            '%s-%s-%s.pdf',
+            $prefix,
+            str($exam->schoolClass->name)->slug(),
+            str($exam->language->label())->slug()
+        );
+
+        return Pdf::loadView($view, [
+            'title' => $prefix,
+            'school' => $this->schoolSetting(),
+            'exam' => $exam,
+        ])->setPaper('a4')->stream($filename);
     }
 }
