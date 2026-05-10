@@ -13,7 +13,17 @@
 
 <section class="page-heading">
     <h1>{{ $isOral ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
-    <a class="button" href="{{ route('grades.edit', $exam) }}">Saisir les notes</a>
+    <div class="heading-actions">
+        @include('partials.help-popover', [
+            'helpTitle' => 'Aide épreuve',
+            'helpItems' => [
+                ['title' => 'Documents', 'text' => 'les boutons PDF ouvrent les documents à imprimer.'],
+                ['title' => 'Notes', 'text' => 'utilisez “Saisir les notes” après le passage de l’épreuve.'],
+                ['title' => 'Rattrapage', 'text' => 'les élèves AB apparaissent automatiquement dans le bloc rattrapage.'],
+            ],
+        ])
+        <a class="button" href="{{ route('grades.edit', $exam) }}">Saisir les notes</a>
+    </div>
 </section>
 
 <section class="panel meta-grid">

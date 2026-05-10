@@ -11,6 +11,14 @@
             {{ $exam->schoolClass->name }} · {{ $exam->language->label() }}
         </p>
     </div>
+    @include('partials.help-popover', [
+        'helpTitle' => 'Aide saisie',
+        'helpItems' => [
+            ['title' => 'Note', 'text' => 'saisissez une valeur entre 0 et le maximum indiqué.'],
+            ['title' => 'Absence', 'text' => 'saisissez AB : le motif apparaît automatiquement.'],
+            ['title' => 'Rattrapage', 'text' => 'les élèves AB seront proposés depuis la page de l’épreuve.'],
+        ],
+    ])
 </section>
 
 <form method="post" action="{{ route('grades.update', $exam) }}" class="panel stack">

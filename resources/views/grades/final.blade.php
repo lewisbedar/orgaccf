@@ -24,7 +24,17 @@
         <h1>Bilan des notes</h1>
         <p class="muted">Vue finale par élève et par langue : écrit /12, oral /8, total /20 et statut.</p>
     </div>
-    <a class="button" target="_blank" href="{{ route('documents.final-grades', request()->query()) }}">Bilan PDF</a>
+    <div class="heading-actions">
+        @include('partials.help-popover', [
+            'helpTitle' => 'Aide bilan',
+            'helpItems' => [
+                ['title' => 'Complet', 'text' => 'l’élève a une note écrite et une note orale.'],
+                ['title' => 'Incomplet', 'text' => 'une note manque ou un rattrapage reste à organiser.'],
+                ['title' => 'Éliminatoire', 'text' => 'une absence injustifiée demeure après rattrapage.'],
+            ],
+        ])
+        <a class="button" target="_blank" href="{{ route('documents.final-grades', request()->query()) }}">Bilan PDF</a>
+    </div>
 </section>
 
 <form method="get" action="{{ route('grades.final') }}" class="panel form-grid">

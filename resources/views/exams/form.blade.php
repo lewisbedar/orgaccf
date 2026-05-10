@@ -6,6 +6,14 @@
         <h1>Planifier une épreuve</h1>
         <p class="muted">Renseignez les informations principales. Vous pourrez vérifier la liste des élèves avant validation.</p>
     </div>
+    @include('partials.help-popover', [
+        'helpTitle' => 'Aide planification',
+        'helpItems' => [
+            ['title' => 'Écrit', 'text' => 'toute la classe passe au même horaire, pendant 1 heure.'],
+            ['title' => 'Oral', 'text' => 'les horaires individuels sont générés automatiquement.'],
+            ['title' => 'Pauses', 'text' => 'elles apparaissent uniquement pour les oraux.'],
+        ],
+    ])
 </section>
 
 <form method="post" action="{{ route('exams.preview') }}" class="panel form-grid">
@@ -50,11 +58,6 @@
     <label>Surveillant écrit
         <input name="supervisor_name" placeholder="À remplir uniquement pour l’écrit si besoin">
     </label>
-
-    <aside class="form-help">
-        <strong>Repères utiles</strong>
-        <p>L’écrit utilise le même horaire pour tous les élèves. L’oral génère automatiquement les passages individuels avec les pauses.</p>
-    </aside>
 
     <fieldset class="planning-breaks" data-oral-breaks hidden>
         <legend>Pauses à respecter pour les oraux</legend>

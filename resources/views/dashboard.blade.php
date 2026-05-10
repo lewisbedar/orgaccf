@@ -6,11 +6,21 @@
         <h1>Tableau de bord</h1>
         <p class="muted">Les actions importantes de l’année scolaire en cours, au même endroit.</p>
     </div>
-    @if(auth()->user()->isCoordinator())
-        <a class="button" href="{{ route('exams.create') }}">Planifier une épreuve</a>
-    @else
-        <a class="button" href="{{ route('grades.summary') }}">Saisir les notes</a>
-    @endif
+    <div class="heading-actions">
+        @include('partials.help-popover', [
+            'helpTitle' => 'Aide tableau de bord',
+            'helpItems' => [
+                ['title' => 'À faire maintenant', 'text' => 'signale les notes à saisir et les rattrapages à préparer.'],
+                ['title' => 'Actions rapides', 'text' => 'vous emmènent directement vers les tâches les plus fréquentes.'],
+                ['title' => 'Prochaines épreuves', 'text' => 'affiche les événements à venir comme un agenda.'],
+            ],
+        ])
+        @if(auth()->user()->isCoordinator())
+            <a class="button" href="{{ route('exams.create') }}">Planifier une épreuve</a>
+        @else
+            <a class="button" href="{{ route('grades.summary') }}">Saisir les notes</a>
+        @endif
+    </div>
 </section>
 
 <section class="quick-actions">
@@ -52,48 +62,30 @@
 @endforeach
 </section>
 
-<section class="guide-grid">
-    <article class="panel">
-        <div class="section-title">
-            <h2>À faire maintenant</h2>
-        </div>
+<section class="panel todo-panel">
+    <div class="section-title">
+        <h2>À faire maintenant</h2>
+    </div>
 
-        <div class="todo-list">
-            @forelse($todoExams as $exam)
-                <a href="{{ route('grades.edit', $exam) }}" class="todo-item">
-                    <span class="status-pill status-warning">Notes à saisir</span>
-                    <strong>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}</strong>
-                    <span>{{ $exam->schoolClass->name }} · {{ $exam->language->label() }} · {{ $exam->exam_date->format('d/m/Y') }}</span>
-                </a>
-            @empty
-                <p class="muted">Aucune épreuve passée en attente de notes.</p>
-            @endforelse
+    <div class="todo-list">
+        @forelse($todoExams as $exam)
+            <a href="{{ route('grades.edit', $exam) }}" class="todo-item">
+                <span class="status-pill status-warning">Notes à saisir</span>
+                <strong>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}</strong>
+                <span>{{ $exam->schoolClass->name }} · {{ $exam->language->label() }} · {{ $exam->exam_date->format('d/m/Y') }}</span>
+            </a>
+        @empty
+            <p class="muted">Aucune épreuve passée en attente de notes.</p>
+        @endforelse
 
-            @foreach($catchupExams as $exam)
-                <a href="{{ route('exams.show', $exam) }}" class="todo-item">
-                    <span class="status-pill status-danger">Rattrapage</span>
-                    <strong>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}</strong>
-                    <span>{{ $exam->schoolClass->name }} · {{ $exam->language->label() }}</span>
-                </a>
-            @endforeach
-        </div>
-    </article>
-
-    <aside class="panel help-panel">
-        <h2>Besoin d’aide ?</h2>
-        <details open>
-            <summary>Planifier un oral</summary>
-            <p>Choisissez “Épreuve orale”. Les horaires individuels sont générés automatiquement avec 10 minutes d’oral et 5 minutes de pause.</p>
-        </details>
-        <details>
-            <summary>Saisir une absence</summary>
-            <p>Saisissez AB dans la note. Le motif apparaît ensuite et devient obligatoire.</p>
-        </details>
-        <details>
-            <summary>Imprimer les documents</summary>
-            <p>Ouvrez une épreuve, puis utilisez les boutons PDF : convocations, émargement et liste de passage oral.</p>
-        </details>
-    </aside>
+        @foreach($catchupExams as $exam)
+            <a href="{{ route('exams.show', $exam) }}" class="todo-item">
+                <span class="status-pill status-danger">Rattrapage</span>
+                <strong>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}</strong>
+                <span>{{ $exam->schoolClass->name }} · {{ $exam->language->label() }}</span>
+            </a>
+        @endforeach
+    </div>
 </section>
 
 <section class="panel">

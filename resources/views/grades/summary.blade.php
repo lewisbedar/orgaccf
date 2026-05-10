@@ -6,6 +6,14 @@
         <h1>Notes</h1>
         <p class="muted">Sélectionnez une épreuve pour saisir ou consulter les notes des élèves concernés.</p>
     </div>
+    @include('partials.help-popover', [
+        'helpTitle' => 'Aide notes',
+        'helpItems' => [
+            ['title' => 'Filtrer', 'text' => 'choisissez une épreuve dans la liste pour afficher les élèves.'],
+            ['title' => 'Saisir', 'text' => 'le bouton ouvre la page de saisie de l’épreuve sélectionnée.'],
+            ['title' => 'PDF', 'text' => 'le récapitulatif reprend les notes et absences de cette épreuve.'],
+        ],
+    ])
 </section>
 
 <form method="get" action="{{ route('grades.summary') }}" class="panel form-grid">

@@ -6,7 +6,17 @@
         <h1>Épreuves</h1>
         <p class="muted">Retrouvez les épreuves prévues, les documents à imprimer et les notes à saisir.</p>
     </div>
-    <a class="button" href="{{ route('exams.create') }}">Planifier</a>
+    <div class="heading-actions">
+        @include('partials.help-popover', [
+            'helpTitle' => 'Aide épreuves',
+            'helpItems' => [
+                ['title' => 'À venir', 'text' => 'l’épreuve est planifiée mais pas encore passée.'],
+                ['title' => 'Notes à saisir', 'text' => 'l’épreuve est passée et attend une saisie.'],
+                ['title' => 'Terminée', 'text' => 'les notes ont été enregistrées.'],
+            ],
+        ])
+        <a class="button" href="{{ route('exams.create') }}">Planifier</a>
+    </div>
 </section>
 
 <table>
