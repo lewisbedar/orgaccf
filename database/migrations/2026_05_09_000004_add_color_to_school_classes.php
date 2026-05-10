@@ -11,9 +11,11 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::table('school_classes', function (Blueprint $table) {
-            $table->string('color', 7)->nullable()->after('name');
-        });
+        if (!Schema::hasColumn('school_classes', 'color')) {
+            Schema::table('school_classes', function (Blueprint $table) {
+                $table->string('color', 7)->nullable()->after('name');
+            });
+        }
 
         DB::table('school_classes')
             ->orderBy('id')
@@ -27,6 +29,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasColumn('school_classes', 'color')) {
+            return;
+        }
+
         Schema::table('school_classes', function (Blueprint $table) {
             $table->dropColumn('color');
         });

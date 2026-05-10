@@ -140,10 +140,39 @@ class ExamController extends Controller
     public function catchup(Request $request, Exam $exam)
     {
         $this->coordinator();
-        $data = $request->validate(['exam_date' => ['required', 'date'], 'start_time' => ['required'], 'room' => ['required']]);
-        $catchup = Exam::create($exam->only(['school_year_id', 'school_class_id', 'language_id', 'type', 'teacher_id', 'supervisor_name']) + $data + ['is_catchup' => true, 'initial_exam_id' => $exam->id]);
+
+        $data = $request->validate([
+            'exam_date' => ['required', 'date'],
+            'start_time' => ['required'],
+            'room' => ['required'],
+        ]);
+
+        $absentStudentIds = Grade::where('exam_id', $exam->id)
+            ->where('value', 'AB')
+            ->whereNull('catchup_exam_id')
+            ->pluck('student_id');
+
+        if ($absentStudentIds->isEmpty()) {
+            return back()->withErrors(['catchup' => 'Aucun élève AB sans rattrapage n’est disponible pour cette épreuve.']);
+        }
+
+        $catchup = Exam::create($exam->only([
+            'school_year_id',
+            'school_class_id',
+            'language_id',
+            'type',
+            'teacher_id',
+            'supervisor_name',
+        ]) + $data + [
+            'is_catchup' => true,
+            'initial_exam_id' => $exam->id,
+        ]);
+
         $this->buildSlots($catchup, $exam);
-        Grade::where('exam_id', $exam->id)->where('value', 'AB')->update(['catchup_exam_id' => $catchup->id]);
+
+        Grade::where('exam_id', $exam->id)
+            ->whereIn('student_id', $absentStudentIds)
+            ->update(['catchup_exam_id' => $catchup->id]);
 
         return redirect()->route('exams.show', $catchup)->with('success', 'Rattrapage créé.');
     }
@@ -151,11 +180,17 @@ class ExamController extends Controller
     private function buildSlots(Exam $exam, ?Exam $initial = null): void
     {
         $students = $initial
-            ? Grade::where('exam_id', $initial->id)->where('value', 'AB')->pluck('student_id')
-            : $exam->schoolClass->students()->whereHas('languages', fn ($q) => $q->where('languages.id', $exam->language_id))->orderBy('last_name')->pluck('id');
+            ? Grade::where('exam_id', $initial->id)->where('value', 'AB')->whereNull('catchup_exam_id')->pluck('student_id')
+            : $exam->schoolClass->students()
+                ->whereHas('languages', fn ($q) => $q->where('languages.id', $exam->language_id))
+                ->orderBy('last_name')
+                ->pluck('id');
 
         foreach ($students->values() as $index => $studentId) {
-            $passTime = $exam->type === 'oral' ? now()->setTimeFromTimeString($exam->start_time)->addMinutes($index * 15)->format('H:i:s') : null;
+            $passTime = $exam->type === 'oral'
+                ? now()->setTimeFromTimeString($exam->start_time)->addMinutes($index * 15)->format('H:i:s')
+                : null;
+
             ExamSlot::firstOrCreate(['exam_id' => $exam->id, 'student_id' => $studentId], ['pass_time' => $passTime]);
             Grade::firstOrCreate(['exam_id' => $exam->id, 'student_id' => $studentId]);
         }

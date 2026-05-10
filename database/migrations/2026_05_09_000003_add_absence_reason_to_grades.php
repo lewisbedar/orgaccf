@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('grades', 'absence_reason')) {
+            return;
+        }
+
         Schema::table('grades', function (Blueprint $table) {
             $table->enum('absence_reason', ['justifiee', 'injustifiee'])->nullable()->after('value');
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!Schema::hasColumn('grades', 'absence_reason')) {
+            return;
+        }
+
         Schema::table('grades', function (Blueprint $table) {
             $table->dropColumn('absence_reason');
         });

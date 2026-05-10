@@ -1,8 +1,18 @@
 @extends('layouts.app', ['title' => 'Épreuve'])
 
 @section('content')
+@php
+    $isOral = $exam->type === 'oral';
+    $catchupCandidates = $exam->grades
+        ->filter(fn ($grade) => $grade->value === 'AB' && $grade->catchup_exam_id === null)
+        ->map(fn ($grade) => $exam->slots->firstWhere('student_id', $grade->student_id)?->student)
+        ->filter()
+        ->sortBy(fn ($student) => $student->last_name . ' ' . $student->first_name)
+        ->values();
+@endphp
+
 <section class="page-heading">
-    <h1>{{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
+    <h1>{{ $isOral ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $exam->is_catchup ? ' de rattrapage' : '' }}</h1>
     <a class="button" href="{{ route('grades.edit', $exam) }}">Saisir les notes</a>
 </section>
 
@@ -17,7 +27,7 @@
 <nav class="doc-links">
     <a target="_blank" href="{{ route('documents.convocations', $exam) }}">Convocations PDF</a>
     <a target="_blank" href="{{ route('documents.attendance', $exam) }}">Émargement PDF</a>
-    @if($exam->type === 'oral')
+    @if($isOral)
         <a target="_blank" href="{{ route('documents.oral-list', $exam) }}">Liste de passage PDF</a>
     @endif
 </nav>
@@ -25,36 +35,61 @@
 <table>
     <thead>
     <tr>
-        @if($exam->type === 'oral')<th>Horaire</th>@endif
+        @if($isOral)<th>Horaire</th>@endif
         <th>Nom</th>
         <th>Prénom</th>
-        @if($exam->type === 'ecrit')<th>Tiers-temps</th>@endif
+        @if(!$isOral)<th>Tiers-temps</th>@endif
         <th>Note</th>
+        <th>Absence</th>
     </tr>
     </thead>
     <tbody>
-    @foreach($exam->slots as $slot)
+    @foreach($exam->slots->sortBy(fn ($slot) => $isOral ? $slot->pass_time : $slot->student->last_name . ' ' . $slot->student->first_name) as $slot)
+        @php($grade = $exam->grades->firstWhere('student_id', $slot->student_id))
         <tr>
-            @if($exam->type === 'oral')<td>{{ substr($slot->pass_time, 0, 5) }}</td>@endif
+            @if($isOral)<td>{{ substr($slot->pass_time, 0, 5) }}</td>@endif
             <td>{{ $slot->student->last_name }}</td>
             <td>{{ $slot->student->first_name }}</td>
-            @if($exam->type === 'ecrit')<td>{{ $slot->student->extra_time ? 'Oui' : 'Non' }}</td>@endif
-            <td>{{ $exam->grades->firstWhere('student_id', $slot->student_id)?->value }}</td>
+            @if(!$isOral)<td>{{ $slot->student->extra_time ? 'Oui' : 'Non' }}</td>@endif
+            <td>{{ $grade?->value ?: '-' }}</td>
+            <td>
+                @if($grade?->value === 'AB')
+                    {{ $grade->absence_reason === 'injustifiee' ? 'Injustifiée' : 'Justifiée' }}
+                    @if($grade->catchup_exam_id)
+                        · rattrapage créé
+                    @endif
+                @else
+                    -
+                @endif
+            </td>
         </tr>
     @endforeach
     </tbody>
 </table>
 
 @unless($exam->is_catchup)
-    <section class="panel narrow">
-        <h2>Créer un rattrapage</h2>
-        <form method="post" action="{{ route('exams.catchup', $exam) }}" class="form-grid">
-            @csrf
-            <label>Date <input type="date" name="exam_date" required></label>
-            <label>Heure <input type="time" name="start_time" required></label>
-            <label>Salle <input name="room" value="{{ $exam->room }}" required></label>
-            <button>Proposer les élèves AB</button>
-        </form>
-    </section>
+    @if($catchupCandidates->isNotEmpty())
+        <section class="panel narrow">
+            <h2>Créer un rattrapage</h2>
+            <p class="muted">Les élèves suivants sont marqués AB et seront convoqués sur l’épreuve de rattrapage.</p>
+            <ul class="compact-list">
+                @foreach($catchupCandidates as $student)
+                    <li>{{ $student->last_name }} {{ $student->first_name }}</li>
+                @endforeach
+            </ul>
+            <form method="post" action="{{ route('exams.catchup', $exam) }}" class="form-grid">
+                @csrf
+                <label>Date <input type="date" name="exam_date" required></label>
+                <label>Heure <input type="time" name="start_time" required></label>
+                <label>Salle <input name="room" value="{{ $exam->room }}" required></label>
+                <button>Créer le rattrapage</button>
+            </form>
+        </section>
+    @else
+        <section class="panel narrow">
+            <h2>Rattrapage</h2>
+            <p class="muted">Aucun élève AB sans rattrapage n’est disponible pour cette épreuve.</p>
+        </section>
+    @endif
 @endunless
 @endsection

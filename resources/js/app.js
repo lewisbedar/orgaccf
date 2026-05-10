@@ -6,7 +6,9 @@ document.querySelectorAll('[data-grade-input]').forEach((input) => {
     const field = document.querySelector(`[data-absence-field="${input.dataset.studentId}"]`);
     const toggleAbsenceField = () => {
         if (!field) return;
-        field.hidden = input.value.trim().toUpperCase() !== 'AB';
+        const isAbsent = input.value.trim().toUpperCase() === 'AB';
+        field.hidden = !isAbsent;
+        field.querySelector('select')?.toggleAttribute('required', isAbsent);
     };
 
     input.addEventListener('input', toggleAbsenceField);

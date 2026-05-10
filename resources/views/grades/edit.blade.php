@@ -1,11 +1,13 @@
 @extends('layouts.app', ['title' => 'Saisie des notes'])
 
 @section('content')
+@php($isOral = $exam->type === 'oral')
+
 <section class="page-heading">
     <div>
         <h1>Saisie des notes</h1>
         <p class="muted">
-            {{ $exam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }} sur {{ $maxScore }} points ·
+            {{ $isOral ? 'Épreuve orale' : 'Épreuve écrite' }} sur {{ $maxScore }} points ·
             {{ $exam->schoolClass->name }} · {{ $exam->language->label() }}
         </p>
     </div>
@@ -16,29 +18,29 @@
 
     <p class="muted">
         Saisissez une note entre 0 et {{ $maxScore }}, ou AB pour une absence.
-        Le motif d'absence apparaît uniquement pour les élèves marqués AB.
+        Le motif d’absence apparaît uniquement pour les élèves marqués AB et devient alors obligatoire.
     </p>
 
     <table>
         <thead>
             <tr>
+                @if($isOral)<th>Horaire</th>@endif
                 <th>Nom</th>
                 <th>Prénom</th>
-                @if($exam->type === 'ecrit')
-                    <th>Tiers-temps</th>
-                @endif
+                @if(!$isOral)<th>Tiers-temps</th>@endif
                 <th>Note / {{ $maxScore }}</th>
                 <th>Absence</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($exam->slots as $slot)
+            @foreach($exam->slots->sortBy(fn ($slot) => $isOral ? $slot->pass_time : $slot->student->last_name . ' ' . $slot->student->first_name) as $slot)
                 @php($grade = $exam->grades->firstWhere('student_id', $slot->student_id))
                 @php($currentValue = old("grades.$slot->student_id", $grade?->value))
                 <tr>
+                    @if($isOral)<td>{{ substr($slot->pass_time, 0, 5) }}</td>@endif
                     <td>{{ $slot->student->last_name }}</td>
                     <td>{{ $slot->student->first_name }}</td>
-                    @if($exam->type === 'ecrit')
+                    @if(!$isOral)
                         <td>{{ $slot->student->extra_time ? 'Oui' : 'Non' }}</td>
                     @endif
                     <td>

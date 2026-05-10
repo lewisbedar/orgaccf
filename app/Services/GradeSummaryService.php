@@ -78,37 +78,39 @@ class GradeSummaryService
             $catchupGrade = $componentGrades->first(fn (Grade $grade) => $grade->exam_id === $regularGrade->catchup_exam_id);
 
             if ($catchupGrade) {
-                return $this->stateFromGrade($catchupGrade);
+                return $this->stateFromGrade($catchupGrade, true);
             }
         }
 
         if ($regularGrade) {
-            return $this->stateFromGrade($regularGrade);
+            return $this->stateFromGrade($regularGrade, false);
         }
 
         $catchupOnlyGrade = $componentGrades->first(fn (Grade $grade) => $grade->exam?->is_catchup);
 
         return $catchupOnlyGrade
-            ? $this->stateFromGrade($catchupOnlyGrade)
+            ? $this->stateFromGrade($catchupOnlyGrade, true)
             : $this->emptyState();
     }
 
-    private function stateFromGrade(Grade $grade): array
+    private function stateFromGrade(Grade $grade, bool $isFinalAttempt = false): array
     {
         if ($grade->value === 'AB') {
             $reason = $grade->absence_reason === 'injustifiee'
                 ? 'injustifiee'
                 : ($grade->absence_reason === 'justifiee' ? 'justifiee' : null);
 
+            $label = match ($reason) {
+                'injustifiee' => 'AB injustifiée',
+                'justifiee' => 'AB justifiée',
+                default => 'AB',
+            };
+
             return [
                 'score' => null,
-                'label' => match ($reason) {
-                    'injustifiee' => 'AB injustifiée',
-                    'justifiee' => 'AB justifiée',
-                    default => 'AB',
-                },
+                'label' => $isFinalAttempt ? $label : $label . ' - rattrapage à prévoir',
                 'missing' => true,
-                'eliminatory' => $reason === 'injustifiee',
+                'eliminatory' => $isFinalAttempt && $reason === 'injustifiee',
             ];
         }
 

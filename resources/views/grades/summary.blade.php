@@ -31,8 +31,9 @@
 </form>
 
 @if($selectedExam)
+    @php($isOral = $selectedExam->type === 'oral')
     <section class="panel meta-grid">
-        <div><span>Type</span><strong>{{ $selectedExam->type === 'oral' ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
+        <div><span>Type</span><strong>{{ $isOral ? 'Épreuve orale' : 'Épreuve écrite' }}{{ $selectedExam->is_catchup ? ' de rattrapage' : '' }}</strong></div>
         <div><span>Classe</span><strong><span class="class-chip" style="--class-color: {{ $selectedExam->schoolClass->displayColor() }}">{{ $selectedExam->schoolClass->name }}</span></strong></div>
         <div><span>Langue</span><strong>{{ $selectedExam->language->label() }}</strong></div>
         <div><span>Date</span><strong>{{ $selectedExam->exam_date->format('d/m/Y') }} {{ substr($selectedExam->start_time, 0, 5) }}</strong></div>
@@ -42,22 +43,22 @@
     <table>
         <thead>
             <tr>
-                @if($selectedExam->type === 'oral')<th>Horaire</th>@endif
+                @if($isOral)<th>Horaire</th>@endif
                 <th>Nom</th>
                 <th>Prénom</th>
-                @if($selectedExam->type === 'ecrit')<th>Tiers-temps</th>@endif
+                @if(!$isOral)<th>Tiers-temps</th>@endif
                 <th>Note / {{ $maxScore }}</th>
                 <th>Absence</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($selectedExam->slots as $slot)
+            @foreach($selectedExam->slots->sortBy(fn ($slot) => $isOral ? $slot->pass_time : $slot->student->last_name . ' ' . $slot->student->first_name) as $slot)
                 @php($grade = $selectedExam->grades->firstWhere('student_id', $slot->student_id))
                 <tr>
-                    @if($selectedExam->type === 'oral')<td>{{ substr($slot->pass_time, 0, 5) }}</td>@endif
+                    @if($isOral)<td>{{ substr($slot->pass_time, 0, 5) }}</td>@endif
                     <td>{{ $slot->student->last_name }}</td>
                     <td>{{ $slot->student->first_name }}</td>
-                    @if($selectedExam->type === 'ecrit')<td>{{ $slot->student->extra_time ? 'Oui' : 'Non' }}</td>@endif
+                    @if(!$isOral)<td>{{ $slot->student->extra_time ? 'Oui' : 'Non' }}</td>@endif
                     <td>{{ $grade?->value ?: '-' }}</td>
                     <td>
                         @if($grade?->value === 'AB')

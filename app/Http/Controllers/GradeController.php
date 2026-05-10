@@ -45,21 +45,26 @@ class GradeController extends Controller
                 $normalizedValue = str_replace(',', '.', $value);
 
                 if (!is_numeric($normalizedValue)) {
-                    $errors->add("grades.$studentId", 'La note doit etre numerique ou egale a AB.');
+                    $errors->add("grades.$studentId", 'La note doit être numérique ou égale à AB.');
                     continue;
                 }
 
                 $numeric = (float) $normalizedValue;
 
                 if ($numeric < 0 || $numeric > $maxScore) {
-                    $errors->add("grades.$studentId", "La note doit etre comprise entre 0 et $maxScore.");
+                    $errors->add("grades.$studentId", "La note doit être comprise entre 0 et $maxScore.");
                     continue;
                 }
 
                 $value = number_format($numeric, 2, '.', '');
             } elseif ($value === 'AB') {
                 $reason = $request->input("absence_reasons.$studentId");
-                $absenceReason = in_array($reason, ['justifiee', 'injustifiee'], true) ? $reason : null;
+                if (!in_array($reason, ['justifiee', 'injustifiee'], true)) {
+                    $errors->add("absence_reasons.$studentId", 'Le motif d’absence est obligatoire pour une absence.');
+                    continue;
+                }
+
+                $absenceReason = $reason;
             }
 
             $updates[(int) $studentId] = [
@@ -80,7 +85,7 @@ class GradeController extends Controller
 
         $exam->update(['status' => 'terminee']);
 
-        return redirect()->route('exams.show', $exam)->with('success', 'Notes enregistrees.');
+        return redirect()->route('exams.show', $exam)->with('success', 'Notes enregistrées.');
     }
 
     public function summary(Request $request)
