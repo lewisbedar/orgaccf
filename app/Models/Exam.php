@@ -18,4 +18,5 @@ class Exam extends Model
     public function teacher() { return $this->belongsTo(User::class, 'teacher_id'); }
     public function slots() { return $this->hasMany(ExamSlot::class); }
     public function grades() { return $this->hasMany(Grade::class); }
+    public function initialExam() { return $this->belongsTo(Exam::class, 'initial_exam_id'); }
 }

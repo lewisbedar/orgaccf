@@ -4,13 +4,61 @@ namespace App\Http\Controllers;
 
 use App\Models\Exam;
 use App\Services\GradeSummaryService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
     public function convocations(Exam $exam)
     {
-        return $this->document('documents.convocations', $exam, 'Convocations eleves');
+        abort_unless(in_array($exam->school_class_id, $this->visibleClassIds(), true), 403);
+
+        $exam->load(['schoolClass.schoolYear', 'language', 'teacher', 'slots.student']);
+        $studentIds = $exam->slots->pluck('student_id')->map(fn ($id) => (int) $id)->all();
+
+        $relatedExams = Exam::with(['schoolClass.schoolYear', 'language', 'teacher', 'slots.student'])
+            ->where('school_year_id', $exam->school_year_id)
+            ->where('school_class_id', $exam->school_class_id)
+            ->where('language_id', $exam->language_id)
+            ->whereHas('slots', fn ($query) => $query->whereIn('student_id', $studentIds))
+            ->orderBy('exam_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $convocations = $exam->slots
+            ->sortBy(fn ($slot) => $slot->student->last_name . ' ' . $slot->student->first_name)
+            ->map(function ($slot) use ($relatedExams) {
+                $student = $slot->student;
+
+                return [
+                    'student' => $student,
+                    'exams' => $relatedExams
+                        ->filter(fn (Exam $relatedExam) => $relatedExam->slots->contains('student_id', $student->id))
+                        ->map(function (Exam $relatedExam) use ($student) {
+                            $studentSlot = $relatedExam->slots->firstWhere('student_id', $student->id);
+                            $relatedExam->setRelation('studentSlot', $studentSlot);
+
+                            return $relatedExam;
+                        })
+                        ->values(),
+                ];
+            })
+            ->values();
+
+        $pdf = Pdf::loadView('documents.convocations', [
+            'title' => 'Convocations eleves',
+            'school' => $this->schoolSetting(),
+            'exam' => $exam,
+            'convocations' => $convocations,
+        ])->setPaper('a4');
+
+        $filename = sprintf(
+            'convocations-%s-%s.pdf',
+            str($exam->schoolClass->name)->slug(),
+            str($exam->language->label())->slug()
+        );
+
+        return $pdf->stream($filename);
     }
 
     public function attendance(Exam $exam)
