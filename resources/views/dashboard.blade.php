@@ -4,7 +4,7 @@
 <section class="page-heading">
     <div>
         <h1>Tableau de bord</h1>
-        <p class="muted">Les actions importantes de l’année scolaire en cours, au même endroit.</p>
+        <p class="muted">Les actions importantes de l'année scolaire en cours, au même endroit.</p>
     </div>
     <div class="heading-actions">
         @include('partials.help-popover', [

@@ -13,8 +13,10 @@
 <header class="topbar">
     <a class="brand" href="{{ route('dashboard') }}">
         <img src="/images/orgaccf-square.png" alt="OrgaCCF">
+        <span>OrgaCCF</span>
     </a>
-    <nav>
+
+    <nav class="main-nav" aria-label="Navigation principale">
         <a href="{{ route('dashboard') }}">Tableau de bord</a>
         <span class="dropdown">
             <button type="button" data-menu-button>Structure</button>
@@ -46,9 +48,23 @@
             </span>
         @endif
     </nav>
-    <form method="post" action="{{ route('logout') }}">@csrf<button class="ghost">Déconnexion</button></form>
+
+    <div class="topbar-actions">
+        @auth
+            <span class="user-pill">{{ auth()->user()->display_name ?: auth()->user()->username }}</span>
+        @endauth
+        <form method="post" action="{{ route('logout') }}">
+            @csrf
+            <button class="ghost">Déconnexion</button>
+        </form>
+    </div>
 </header>
-<div class="context-line"><strong>{{ $school->school_name }}</strong><span>Année scolaire : {{ $year?->label ?? 'à configurer' }}</span></div>
+
+<div class="context-line">
+    <span class="context-title">{{ $school->school_name }}</span>
+    <span>Année scolaire : {{ $year?->label ?? 'à configurer' }}</span>
+</div>
+
 <main class="page">
     @if(session('success'))<div class="alert success">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="alert error">{{ $errors->first() }}</div>@endif
