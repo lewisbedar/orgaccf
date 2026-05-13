@@ -35,15 +35,29 @@ class ClassController extends Controller
             'name' => ['required', 'max:120'],
             'language_ids' => ['required', 'array', 'min:1'],
             'language_ids.*' => ['exists:languages,id'],
+            'creation_method' => ['required', 'in:pronote,manual'],
             'pronote_csv' => ['nullable', 'file', 'mimes:csv,txt'],
+            'manual_students' => ['array'],
+            'manual_students.*.last_name' => ['nullable', 'max:120'],
+            'manual_students.*.first_name' => ['nullable', 'max:120'],
+            'manual_students.*.birth_date' => ['nullable', 'date'],
+            'manual_students.*.email' => ['nullable', 'email'],
+            'manual_students.*.extra_time' => ['nullable', 'boolean'],
         ]);
+
+        if ($data['creation_method'] === 'pronote' && !$request->hasFile('pronote_csv')) {
+            return back()->withErrors(['pronote_csv' => 'Déposez un fichier CSV Pronote pour continuer.'])->withInput();
+        }
+
+        $students = $data['creation_method'] === 'pronote'
+            ? $importer->parse($request->file('pronote_csv')->getRealPath())
+            : $this->manualRows($data['manual_students'] ?? []);
 
         $draft = [
             'name' => $data['name'],
             'language_ids' => array_map('intval', $data['language_ids']),
-            'students' => $request->hasFile('pronote_csv')
-                ? $importer->parse($request->file('pronote_csv')->getRealPath())
-                : [],
+            'source' => $data['creation_method'],
+            'students' => $students,
             'file_name' => $request->file('pronote_csv')?->getClientOriginalName(),
         ];
 
@@ -145,6 +159,23 @@ class ClassController extends Controller
             'languages' => Language::where('is_active', true)->orderBy('sort_order')->get(),
             'year' => $this->activeYear(),
         ];
+    }
+
+    private function manualRows(array $rows): array
+    {
+        return collect($rows)
+            ->map(fn (array $row) => [
+                'include' => true,
+                'last_name' => trim((string) ($row['last_name'] ?? '')),
+                'first_name' => trim((string) ($row['first_name'] ?? '')),
+                'birth_date' => $row['birth_date'] ?? null,
+                'email' => $row['email'] ?? null,
+                'extra_time' => !empty($row['extra_time']),
+                'pronote_options' => null,
+            ])
+            ->filter(fn (array $row) => $row['last_name'] !== '' || $row['first_name'] !== '' || $row['email'] !== '')
+            ->values()
+            ->all();
     }
 
     private function nextClassColor(): string

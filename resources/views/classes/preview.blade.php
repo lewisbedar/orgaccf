@@ -1,9 +1,13 @@
-@extends('layouts.app', ['title' => 'Aperçu import Pronote'])
+@extends('layouts.app', ['title' => 'Vérification classe'])
+
 @section('content')
 <section class="page-heading">
     <div>
-        <h1>Aperçu avant validation</h1>
-        <p class="muted">{{ $draft['file_name'] ? 'Fichier : '.$draft['file_name'] : 'Création manuelle sans CSV' }}</p>
+        <h1>Vérification avant création</h1>
+        <p class="muted">
+            {{ $draft['source'] === 'pronote' ? 'Import Pronote' : 'Saisie manuelle' }}
+            @if($draft['file_name']) · fichier : {{ $draft['file_name'] }} @endif
+        </p>
     </div>
     <a href="{{ route('classes.create') }}">Recommencer</a>
 </section>
@@ -12,8 +16,8 @@
     @csrf
     <div class="wizard-steps">
         <span>1. Classe</span>
-        <span>2. Import Pronote</span>
-        <span class="active">3. Aperçu</span>
+        <span>2. Élèves</span>
+        <span class="active">3. Vérification</span>
         <span>4. Validation</span>
     </div>
 
@@ -27,7 +31,7 @@
                 @foreach($selectedLanguages as $language)
                     <label class="check">
                         <input type="checkbox" name="language_ids[]" value="{{ $language->id }}" checked>
-                        <img class="flag" src="{{ $language->icon_path }}" alt="">
+                        @if($language->icon_path)<img class="flag" src="{{ $language->icon_path }}" alt="">@endif
                         {{ $language->label() }}
                     </label>
                 @endforeach
@@ -37,26 +41,27 @@
 
     @if(count($draft['students']) === 0)
         <div class="empty-state">
-            <h2>Aucun élève importé</h2>
-            <p class="muted">Vous pouvez valider la classe vide, puis ajouter les élèves manuellement.</p>
+            <h2>Aucun élève détecté</h2>
+            <p class="muted">Vous pouvez revenir en arrière pour ajouter des élèves, ou créer la classe vide et compléter plus tard.</p>
         </div>
     @else
         <div class="preview-toolbar">
-            <strong>{{ count($draft['students']) }} élève(s) détecté(s)</strong>
-            <span class="muted">Décochez les lignes à ignorer avant validation.</span>
+            <strong>{{ count($draft['students']) }} élève(s) à vérifier</strong>
+            <span class="muted">Modifiez directement une cellule ou supprimez une ligne avant validation.</span>
         </div>
 
         <div class="table-scroll">
             <table class="import-table">
                 <thead>
                 <tr>
-                    <th>Inclure</th>
+                    <th>Conserver</th>
                     <th>Nom</th>
                     <th>Prénom</th>
                     <th>Naissance</th>
                     <th>Email</th>
                     <th>Tiers-temps</th>
                     <th>Options Pronote</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -76,6 +81,7 @@
                             <input type="checkbox" name="students[{{ $index }}][extra_time]" value="1" @checked(!empty($oldRow['extra_time']))>
                         </td>
                         <td><input name="students[{{ $index }}][pronote_options]" value="{{ $oldRow['pronote_options'] ?? '' }}"></td>
+                        <td><button type="button" class="icon-action danger-text" data-remove-import-row title="Supprimer la ligne">×</button></td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -84,7 +90,7 @@
     @endif
 
     <div class="form-actions">
-        <button>Créer la classe et importer</button>
+        <button>Créer la classe</button>
     </div>
 </form>
 @endsection
