@@ -13,6 +13,7 @@ class SettingsController extends Controller
     public function firstYear()
     {
         $this->coordinator();
+
         return view('settings.year', ['proposal' => SchoolYears::proposed()]);
     }
 
@@ -21,13 +22,19 @@ class SettingsController extends Controller
         $this->coordinator();
         $request->validate(['label' => ['required', 'regex:/^\d{4}-\d{4}$/']]);
         $this->openYear($request->string('label')->toString());
+
         return redirect()->route('dashboard')->with('success', 'Année scolaire active créée.');
     }
 
     public function school()
     {
         $this->coordinator();
-        return view('settings.school', ['school' => $this->schoolSetting(), 'year' => $this->activeYear(), 'proposal' => SchoolYears::proposed()]);
+
+        return view('settings.school', [
+            'school' => $this->schoolSetting(),
+            'year' => $this->activeYear(),
+            'proposal' => SchoolYears::proposed(),
+        ]);
     }
 
     public function updateSchool(Request $request)
@@ -40,11 +47,20 @@ class SettingsController extends Controller
             'email' => ['nullable', 'email'],
             'academic_zone' => ['required', 'in:A,B,C'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg'],
+            'oral_breaks' => ['array'],
+            'oral_breaks.*.label' => ['nullable', 'string', 'max:80'],
+            'oral_breaks.*.start' => ['nullable', 'date_format:H:i'],
+            'oral_breaks.*.end' => ['nullable', 'date_format:H:i'],
         ]);
+
+        $data['oral_breaks'] = $this->cleanBreaks($data['oral_breaks'] ?? []);
+
         if ($request->hasFile('logo')) {
             $data['logo_path'] = '/storage/' . $request->file('logo')->store('logos', 'public');
         }
+
         SchoolSetting::current()->update($data);
+
         return back()->with('success', 'Paramètres établissement enregistrés.');
     }
 
@@ -52,6 +68,7 @@ class SettingsController extends Controller
     {
         $this->coordinator();
         $this->activeYear()?->update(['is_active' => false, 'closed_at' => now()]);
+
         return back()->with('success', 'Année scolaire clôturée.');
     }
 
@@ -69,6 +86,7 @@ class SettingsController extends Controller
                 'language_ids' => $class->language_ids,
             ]));
         }
+
         return back()->with('success', 'Nouvelle année scolaire ouverte.');
     }
 
@@ -76,8 +94,27 @@ class SettingsController extends Controller
     {
         [$starts, $ends] = SchoolYears::datesFor($label);
         SchoolYear::query()->update(['is_active' => false]);
-        $year = SchoolYear::updateOrCreate(['label' => $label], ['starts_on' => $starts, 'ends_on' => $ends, 'is_active' => true, 'closed_at' => null]);
+        $year = SchoolYear::updateOrCreate(['label' => $label], [
+            'starts_on' => $starts,
+            'ends_on' => $ends,
+            'is_active' => true,
+            'closed_at' => null,
+        ]);
         SchoolSetting::current()->update(['active_school_year_id' => $year->id]);
+
         return $year;
+    }
+
+    private function cleanBreaks(array $breaks): array
+    {
+        return collect($breaks)
+            ->map(fn (array $break) => [
+                'label' => trim((string) ($break['label'] ?? 'Pause')) ?: 'Pause',
+                'start' => $break['start'] ?? null,
+                'end' => $break['end'] ?? null,
+            ])
+            ->filter(fn (array $break) => $break['start'] && $break['end'] && $break['start'] < $break['end'])
+            ->values()
+            ->all();
     }
 }

@@ -1,4 +1,5 @@
 @extends('layouts.app', ['title' => 'Établissement'])
+
 @section('content')
 <section class="page-heading">
     <h1>Établissement</h1>
@@ -29,6 +30,19 @@
         <label>Logo du lycée
             <input type="file" name="logo" accept="image/*">
         </label>
+
+        <fieldset class="planning-breaks">
+            <legend>Pauses à respecter pour les oraux</legend>
+            <p class="muted">Ces créneaux seront utilisés automatiquement lors de la planification des épreuves orales.</p>
+            @foreach(old('oral_breaks', $school->oralBreaks()) as $index => $break)
+                <div class="break-row">
+                    <label>Libellé <input name="oral_breaks[{{ $index }}][label]" value="{{ $break['label'] }}"></label>
+                    <label>Début <input type="time" name="oral_breaks[{{ $index }}][start]" value="{{ $break['start'] }}"></label>
+                    <label>Fin <input type="time" name="oral_breaks[{{ $index }}][end]" value="{{ $break['end'] }}"></label>
+                </div>
+            @endforeach
+        </fieldset>
+
         <button>Enregistrer</button>
     </form>
 

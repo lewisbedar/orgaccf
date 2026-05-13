@@ -10,6 +10,7 @@ use App\Models\SchoolClass;
 use App\Models\User;
 use App\Services\OralScheduleBuilder;
 use App\Services\PlanningWarningService;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 
 class ExamController extends Controller
@@ -25,65 +26,137 @@ class ExamController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->coordinator();
 
-        return view('exams.form', [
+        if ($request->boolean('reset')) {
+            $request->session()->forget('exam_planning_draft');
+        }
+
+        return view('exams.wizard-class', [
             'classes' => SchoolClass::where('school_year_id', $this->activeYear()?->id)->orderBy('name')->get(),
-            'languages' => Language::where('is_active', true)->orderBy('sort_order')->get(),
-            'teachers' => User::where('role', 'enseignant')->where('is_active', true)->orderBy('display_name')->get(),
-            'defaultBreaks' => $this->defaultBreaks(),
+            'draft' => $this->draft($request),
         ]);
     }
 
-    public function preview(Request $request, OralScheduleBuilder $scheduleBuilder, PlanningWarningService $warningService)
+    public function storeClassStep(Request $request)
     {
         $this->coordinator();
-        $data = $this->validatedExam($request);
+        $data = $request->validate([
+            'school_class_id' => ['required', 'exists:school_classes,id'],
+        ]);
 
-        $class = SchoolClass::with('students.languages')->findOrFail($data['school_class_id']);
-        $language = Language::findOrFail($data['language_id']);
-        $teacher = !empty($data['teacher_id']) ? User::find($data['teacher_id']) : null;
-        $students = $class->students()
-            ->whereHas('languages', fn ($query) => $query->where('languages.id', $data['language_id']))
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get();
+        $this->mergeDraft($request, [
+            'school_class_id' => (int) $data['school_class_id'],
+        ]);
 
-        $breaks = $this->cleanBreaks($request->input('breaks', []));
-        $slots = $data['type'] === 'oral'
-            ? $scheduleBuilder->build($students, $data['exam_date'], $data['start_time'], $breaks)
-            : $students->map(fn ($student) => [
-                'student_id' => $student->id,
-                'last_name' => $student->last_name,
-                'first_name' => $student->first_name,
-                'extra_time' => $student->extra_time,
-                'pass_time' => null,
-            ])->all();
+        return redirect()->route('exams.wizard.type');
+    }
 
-        $draft = $data + [
+    public function type(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['school_class_id']);
+        $class = SchoolClass::findOrFail($this->draft($request)['school_class_id']);
+        $languageIds = $class->language_ids ?: [];
+
+        return view('exams.wizard-type', [
+            'class' => $class,
+            'languages' => Language::where('is_active', true)
+                ->when($languageIds !== [], fn ($query) => $query->whereIn('id', $languageIds))
+                ->orderBy('sort_order')
+                ->get(),
+            'draft' => $this->draft($request),
+        ]);
+    }
+
+    public function storeTypeStep(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['school_class_id']);
+
+        $data = $request->validate([
+            'type' => ['required', 'in:ecrit,oral'],
+            'language_id' => ['required', 'exists:languages,id'],
+        ]);
+
+        $this->mergeDraft($request, [
+            'type' => $data['type'],
+            'language_id' => (int) $data['language_id'],
+        ]);
+
+        return redirect()->route('exams.wizard.schedule');
+    }
+
+    public function schedule(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['school_class_id', 'type', 'language_id']);
+
+        return view('exams.wizard-schedule', [
+            'draft' => $this->draft($request),
+            'class' => SchoolClass::findOrFail($this->draft($request)['school_class_id']),
+            'language' => Language::findOrFail($this->draft($request)['language_id']),
+            'teachers' => User::where('role', 'enseignant')->where('is_active', true)->orderBy('display_name')->get(),
+        ]);
+    }
+
+    public function storeScheduleStep(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['school_class_id', 'type', 'language_id']);
+
+        $data = $request->validate([
+            'exam_date' => ['required', 'date'],
+            'start_time' => ['required'],
+            'room' => ['required', 'max:120'],
+            'teacher_id' => ['nullable', 'exists:users,id'],
+            'supervisor_name' => ['nullable', 'max:160'],
+        ]);
+
+        $this->mergeDraft($request, $data);
+
+        return redirect()->route('exams.wizard.students');
+    }
+
+    public function students(Request $request, OralScheduleBuilder $scheduleBuilder, PlanningWarningService $warningService)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['school_class_id', 'type', 'language_id', 'exam_date', 'start_time', 'room']);
+        $draft = $this->draft($request);
+        $class = SchoolClass::with('students.languages')->findOrFail($draft['school_class_id']);
+        $language = Language::findOrFail($draft['language_id']);
+        $students = $this->eligibleStudents($class, (int) $draft['language_id'])->get();
+        $slots = $this->buildDraftSlots($students, $draft, $scheduleBuilder);
+
+        $this->mergeDraft($request, [
             'school_year_id' => $this->activeYear()->id,
-            'breaks' => $breaks,
+            'breaks' => $this->schoolSetting()->oralBreaks(),
             'slots' => $slots,
-        ];
-        $request->session()->put('exam_planning_draft', $draft);
+        ]);
+        $draft = $this->draft($request);
 
-        return view('exams.preview', [
+        return view('exams.wizard-students', [
             'draft' => $draft,
             'class' => $class,
             'language' => $language,
-            'teacher' => $teacher,
+            'teacher' => !empty($draft['teacher_id']) ? User::find($draft['teacher_id']) : null,
             'slots' => $slots,
             'warnings' => $warningService->warnings($draft, $slots, $this->schoolSetting()),
         ]);
     }
 
+    public function preview(Request $request)
+    {
+        return redirect()->route('exams.wizard.students');
+    }
+
     public function confirm(Request $request)
     {
         $this->coordinator();
-        $draft = $request->session()->get('exam_planning_draft');
-        abort_unless($draft, 419);
+        $draft = $this->draft($request);
+        $this->ensureDraftHas($request, ['type', 'school_class_id', 'language_id', 'exam_date', 'start_time', 'room', 'slots']);
 
         $data = $request->validate([
             'slots' => ['array'],
@@ -122,12 +195,7 @@ class ExamController extends Controller
 
     public function store(Request $request)
     {
-        $this->coordinator();
-        $data = $this->validatedExam($request);
-        $exam = Exam::create($data + ['school_year_id' => $this->activeYear()->id]);
-        $this->buildSlots($exam);
-
-        return redirect()->route('exams.show', $exam)->with('success', 'Épreuve créée.');
+        return $this->storeClassStep($request);
     }
 
     public function show(Exam $exam)
@@ -196,39 +264,45 @@ class ExamController extends Controller
         }
     }
 
-    private function validatedExam(Request $request): array
+    private function eligibleStudents(SchoolClass $class, int $languageId)
     {
-        return $request->validate([
-            'type' => ['required', 'in:ecrit,oral'],
-            'school_class_id' => ['required', 'exists:school_classes,id'],
-            'language_id' => ['required', 'exists:languages,id'],
-            'exam_date' => ['required', 'date'],
-            'start_time' => ['required'],
-            'room' => ['required', 'max:120'],
-            'teacher_id' => ['nullable', 'exists:users,id'],
-            'supervisor_name' => ['nullable', 'max:160'],
-        ]);
+        return $class->students()
+            ->whereHas('languages', fn ($query) => $query->where('languages.id', $languageId))
+            ->orderBy('last_name')
+            ->orderBy('first_name');
     }
 
-    private function defaultBreaks(): array
+    private function buildDraftSlots($students, array $draft, OralScheduleBuilder $scheduleBuilder): array
     {
-        return [
-            ['label' => 'Récréation matin', 'start' => '10:00', 'end' => '10:15'],
-            ['label' => 'Pause midi', 'start' => '12:15', 'end' => '13:05'],
-            ['label' => 'Récréation après-midi', 'start' => '15:55', 'end' => '16:20'],
-        ];
+        return $draft['type'] === 'oral'
+            ? $scheduleBuilder->build($students, $draft['exam_date'], $draft['start_time'], $this->schoolSetting()->oralBreaks())
+            : $students->map(fn ($student) => [
+                'student_id' => $student->id,
+                'last_name' => $student->last_name,
+                'first_name' => $student->first_name,
+                'extra_time' => $student->extra_time,
+                'pass_time' => null,
+            ])->all();
     }
 
-    private function cleanBreaks(array $breaks): array
+    private function draft(Request $request): array
     {
-        return collect($breaks)
-            ->map(fn (array $break) => [
-                'label' => trim((string) ($break['label'] ?? 'Pause')) ?: 'Pause',
-                'start' => $break['start'] ?? null,
-                'end' => $break['end'] ?? null,
-            ])
-            ->filter(fn (array $break) => $break['start'] && $break['end'] && $break['start'] < $break['end'])
-            ->values()
-            ->all();
+        return $request->session()->get('exam_planning_draft', []);
+    }
+
+    private function mergeDraft(Request $request, array $data): void
+    {
+        $request->session()->put('exam_planning_draft', array_replace($this->draft($request), $data));
+    }
+
+    private function ensureDraftHas(Request $request, array $keys): void
+    {
+        $draft = $this->draft($request);
+
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $draft)) {
+                throw new HttpResponseException(redirect()->route('exams.create'));
+            }
+        }
     }
 }

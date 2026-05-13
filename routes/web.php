@@ -39,8 +39,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/classes/confirm', [ClassController::class, 'confirm'])->name('classes.confirm');
     Route::resource('classes', ClassController::class)->parameters(['classes' => 'class'])->except(['edit', 'update', 'destroy']);
     Route::resource('students', StudentController::class)->except(['show']);
+    Route::post('/exams/wizard/class', [ExamController::class, 'storeClassStep'])->name('exams.wizard.class');
+    Route::get('/exams/wizard/type', [ExamController::class, 'type'])->name('exams.wizard.type');
+    Route::post('/exams/wizard/type', [ExamController::class, 'storeTypeStep'])->name('exams.wizard.type.store');
+    Route::get('/exams/wizard/schedule', [ExamController::class, 'schedule'])->name('exams.wizard.schedule');
+    Route::post('/exams/wizard/schedule', [ExamController::class, 'storeScheduleStep'])->name('exams.wizard.schedule.store');
+    Route::get('/exams/wizard/students', [ExamController::class, 'students'])->name('exams.wizard.students');
+    Route::post('/exams/wizard/confirm', [ExamController::class, 'confirm'])->name('exams.confirm');
     Route::post('/exams/preview', [ExamController::class, 'preview'])->name('exams.preview');
-    Route::post('/exams/confirm', [ExamController::class, 'confirm'])->name('exams.confirm');
     Route::resource('exams', ExamController::class)->except(['edit', 'update', 'destroy']);
     Route::post('/exams/{exam}/catchup', [ExamController::class, 'catchup'])->name('exams.catchup');
 

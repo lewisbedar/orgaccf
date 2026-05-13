@@ -25,6 +25,26 @@ const toggleOralBreaks = () => {
 examTypeSelect?.addEventListener('change', toggleOralBreaks);
 toggleOralBreaks();
 
+const studentSelectionTable = document.querySelector('[data-student-selection-table]');
+const studentCheckboxes = () => [...document.querySelectorAll('[data-student-include]')];
+const setSelectedStudents = (predicate) => {
+    studentCheckboxes().forEach((checkbox, index) => {
+        checkbox.checked = predicate(index, studentCheckboxes().length);
+    });
+};
+
+document.querySelector('[data-select-all-students]')?.addEventListener('click', () => {
+    setSelectedStudents(() => true);
+});
+
+document.querySelector('[data-select-first-half]')?.addEventListener('click', () => {
+    setSelectedStudents((index, total) => index < Math.ceil(total / 2));
+});
+
+document.querySelector('[data-select-second-half]')?.addEventListener('click', () => {
+    setSelectedStudents((index, total) => index >= Math.ceil(total / 2));
+});
+
 const sourceInputs = document.querySelectorAll('[data-class-source]');
 const sourcePanels = document.querySelectorAll('[data-source-panel]');
 const toggleClassSource = () => {

@@ -16,7 +16,7 @@
             ],
         ])
         @if(auth()->user()->isCoordinator())
-            <a class="button" href="{{ route('exams.create') }}">Planifier une épreuve</a>
+            <a class="button" href="{{ route('exams.create', ['reset' => 1]) }}">Planifier une épreuve</a>
         @else
             <a class="button" href="{{ route('grades.summary') }}">Saisir les notes</a>
         @endif
@@ -29,7 +29,7 @@
         <span>Consulter les élèves et les langues concernées.</span>
     </a>
     @if(auth()->user()->isCoordinator())
-        <a class="action-card" href="{{ route('exams.create') }}">
+        <a class="action-card" href="{{ route('exams.create', ['reset' => 1]) }}">
             <strong>Planifier une épreuve</strong>
             <span>Choisir écrit ou oral, puis générer les horaires.</span>
         </a>

@@ -15,7 +15,7 @@
                 ['title' => 'Terminée', 'text' => 'les notes ont été enregistrées.'],
             ],
         ])
-        <a class="button" href="{{ route('exams.create') }}">Planifier</a>
+        <a class="button" href="{{ route('exams.create', ['reset' => 1]) }}">Planifier</a>
     </div>
 </section>
 
