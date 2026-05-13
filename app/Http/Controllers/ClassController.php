@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Language;
 use App\Models\SchoolClass;
 use App\Services\PronoteCsvImporter;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,14 +21,24 @@ class ClassController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->coordinator();
 
-        return view('classes.wizard', $this->wizardData());
+        if ($request->boolean('reset')) {
+            $request->session()->forget('class_import_draft');
+        }
+
+        if (!$request->session()->has('class_import_draft')) {
+            $request->session()->put('class_import_draft', ['students' => []]);
+        }
+
+        return view('classes.wizard-class', $this->wizardData() + [
+            'draft' => $this->draft($request),
+        ]);
     }
 
-    public function preview(Request $request, PronoteCsvImporter $importer)
+    public function storeClassStep(Request $request)
     {
         $this->coordinator();
 
@@ -35,8 +46,89 @@ class ClassController extends Controller
             'name' => ['required', 'max:120'],
             'language_ids' => ['required', 'array', 'min:1'],
             'language_ids.*' => ['exists:languages,id'],
+        ]);
+
+        $this->mergeDraft($request, [
+            'name' => $data['name'],
+            'language_ids' => array_map('intval', $data['language_ids']),
+        ]);
+
+        return redirect()->route('classes.wizard.method');
+    }
+
+    public function method(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids']);
+
+        return view('classes.wizard-method', [
+            'draft' => $this->draft($request),
+        ]);
+    }
+
+    public function storeMethodStep(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids']);
+
+        $data = $request->validate([
             'creation_method' => ['required', 'in:pronote,manual'],
-            'pronote_csv' => ['nullable', 'file', 'mimes:csv,txt'],
+        ]);
+
+        $this->mergeDraft($request, [
+            'source' => $data['creation_method'],
+            'students' => [],
+            'file_name' => null,
+        ]);
+
+        return redirect()->route($data['creation_method'] === 'pronote'
+            ? 'classes.wizard.pronote'
+            : 'classes.wizard.manual');
+    }
+
+    public function pronote(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
+
+        return view('classes.wizard-pronote', [
+            'draft' => $this->draft($request),
+        ]);
+    }
+
+    public function storePronoteStep(Request $request, PronoteCsvImporter $importer)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
+
+        $data = $request->validate([
+            'pronote_csv' => ['required', 'file', 'mimes:csv,txt'],
+        ]);
+
+        $this->mergeDraft($request, [
+            'students' => $importer->parse($data['pronote_csv']->getRealPath()),
+            'file_name' => $data['pronote_csv']->getClientOriginalName(),
+        ]);
+
+        return redirect()->route('classes.preview');
+    }
+
+    public function manual(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
+
+        return view('classes.wizard-manual', [
+            'draft' => $this->draft($request),
+        ]);
+    }
+
+    public function storeManualStep(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
+
+        $data = $request->validate([
             'manual_students' => ['array'],
             'manual_students.*.last_name' => ['nullable', 'max:120'],
             'manual_students.*.first_name' => ['nullable', 'max:120'],
@@ -45,23 +137,20 @@ class ClassController extends Controller
             'manual_students.*.extra_time' => ['nullable', 'boolean'],
         ]);
 
-        if ($data['creation_method'] === 'pronote' && !$request->hasFile('pronote_csv')) {
-            return back()->withErrors(['pronote_csv' => 'Déposez un fichier CSV Pronote pour continuer.'])->withInput();
-        }
+        $this->mergeDraft($request, [
+            'students' => $this->manualRows($data['manual_students'] ?? []),
+            'file_name' => null,
+        ]);
 
-        $students = $data['creation_method'] === 'pronote'
-            ? $importer->parse($request->file('pronote_csv')->getRealPath())
-            : $this->manualRows($data['manual_students'] ?? []);
+        return redirect()->route('classes.preview');
+    }
 
-        $draft = [
-            'name' => $data['name'],
-            'language_ids' => array_map('intval', $data['language_ids']),
-            'source' => $data['creation_method'],
-            'students' => $students,
-            'file_name' => $request->file('pronote_csv')?->getClientOriginalName(),
-        ];
+    public function preview(Request $request)
+    {
+        $this->coordinator();
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
 
-        $request->session()->put('class_import_draft', $draft);
+        $draft = $this->draft($request);
 
         return view('classes.preview', $this->wizardData() + [
             'draft' => $draft,
@@ -72,8 +161,7 @@ class ClassController extends Controller
     public function confirm(Request $request)
     {
         $this->coordinator();
-
-        abort_unless($request->session()->has('class_import_draft'), 419);
+        $this->ensureDraftHas($request, ['name', 'language_ids', 'source']);
 
         $data = $request->validate([
             'name' => ['required', 'max:120'],
@@ -128,22 +216,7 @@ class ClassController extends Controller
 
     public function store(Request $request)
     {
-        $this->coordinator();
-
-        $data = $request->validate([
-            'name' => ['required', 'max:120'],
-            'language_ids' => ['required', 'array', 'min:1'],
-            'language_ids.*' => ['exists:languages,id'],
-        ]);
-
-        $class = SchoolClass::create([
-            'name' => $data['name'],
-            'school_year_id' => $this->activeYear()->id,
-            'color' => $this->nextClassColor(),
-            'language_ids' => array_map('intval', $data['language_ids']),
-        ]);
-
-        return redirect()->route('classes.show', $class)->with('success', 'Classe créée.');
+        return $this->storeClassStep($request);
     }
 
     public function show(SchoolClass $class)
@@ -159,6 +232,27 @@ class ClassController extends Controller
             'languages' => Language::where('is_active', true)->orderBy('sort_order')->get(),
             'year' => $this->activeYear(),
         ];
+    }
+
+    private function draft(Request $request): array
+    {
+        return $request->session()->get('class_import_draft', ['students' => []]);
+    }
+
+    private function mergeDraft(Request $request, array $data): void
+    {
+        $request->session()->put('class_import_draft', array_replace($this->draft($request), $data));
+    }
+
+    private function ensureDraftHas(Request $request, array $keys): void
+    {
+        $draft = $this->draft($request);
+
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $draft)) {
+                throw new HttpResponseException(redirect()->route('classes.create'));
+            }
+        }
     }
 
     private function manualRows(array $rows): array

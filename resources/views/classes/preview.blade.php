@@ -3,22 +3,23 @@
 @section('content')
 <section class="page-heading">
     <div>
-        <h1>Vérification avant création</h1>
+        <h1>Vérifier la classe</h1>
         <p class="muted">
-            {{ $draft['source'] === 'pronote' ? 'Import Pronote' : 'Saisie manuelle' }}
+            Étape 4 sur 4 :
+            {{ $draft['source'] === 'pronote' ? 'import Pronote' : 'saisie manuelle' }}
             @if($draft['file_name']) · fichier : {{ $draft['file_name'] }} @endif
         </p>
     </div>
-    <a href="{{ route('classes.create') }}">Recommencer</a>
+    <a href="{{ route('classes.create', ['reset' => 1]) }}">Recommencer</a>
 </section>
 
 <form method="post" action="{{ route('classes.confirm') }}" class="panel stack">
     @csrf
     <div class="wizard-steps">
         <span>1. Classe</span>
-        <span>2. Élèves</span>
-        <span class="active">3. Vérification</span>
-        <span>4. Validation</span>
+        <span>2. Méthode</span>
+        <span>3. Élèves</span>
+        <span class="active">4. Vérification</span>
     </div>
 
     <div class="form-grid">
@@ -47,7 +48,7 @@
     @else
         <div class="preview-toolbar">
             <strong>{{ count($draft['students']) }} élève(s) à vérifier</strong>
-            <span class="muted">Modifiez directement une cellule ou supprimez une ligne avant validation.</span>
+            <span class="muted">Modifiez une cellule ou supprimez une ligne avant validation.</span>
         </div>
 
         <div class="table-scroll">
@@ -89,7 +90,8 @@
         </div>
     @endif
 
-    <div class="form-actions">
+    <div class="form-actions wizard-actions">
+        <a class="button ghost-button" href="{{ $draft['source'] === 'pronote' ? route('classes.wizard.pronote') : route('classes.wizard.manual') }}">Précédent</a>
         <button>Créer la classe</button>
     </div>
 </form>

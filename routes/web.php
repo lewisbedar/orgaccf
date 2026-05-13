@@ -28,7 +28,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/year/open', [SettingsController::class, 'newYear'])->name('settings.year.open');
 
     Route::resource('users', UserController::class)->except(['show']);
-    Route::post('/classes/preview', [ClassController::class, 'preview'])->name('classes.preview');
+    Route::post('/classes/wizard/class', [ClassController::class, 'storeClassStep'])->name('classes.wizard.class');
+    Route::get('/classes/wizard/method', [ClassController::class, 'method'])->name('classes.wizard.method');
+    Route::post('/classes/wizard/method', [ClassController::class, 'storeMethodStep'])->name('classes.wizard.method.store');
+    Route::get('/classes/wizard/pronote', [ClassController::class, 'pronote'])->name('classes.wizard.pronote');
+    Route::post('/classes/wizard/pronote', [ClassController::class, 'storePronoteStep'])->name('classes.wizard.pronote.store');
+    Route::get('/classes/wizard/manual', [ClassController::class, 'manual'])->name('classes.wizard.manual');
+    Route::post('/classes/wizard/manual', [ClassController::class, 'storeManualStep'])->name('classes.wizard.manual.store');
+    Route::get('/classes/preview', [ClassController::class, 'preview'])->name('classes.preview');
     Route::post('/classes/confirm', [ClassController::class, 'confirm'])->name('classes.confirm');
     Route::resource('classes', ClassController::class)->parameters(['classes' => 'class'])->except(['edit', 'update', 'destroy']);
     Route::resource('students', StudentController::class)->except(['show']);

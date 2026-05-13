@@ -6,7 +6,7 @@
         <h1>Classes</h1>
         <p class="muted">Créez une classe, importez ses élèves ou consultez les listes existantes.</p>
     </div>
-    <a class="button" href="{{ route('classes.create') }}">Créer une classe</a>
+    <a class="button" href="{{ route('classes.create', ['reset' => 1]) }}">Créer une classe</a>
 </section>
 
 <div class="list-grid">
